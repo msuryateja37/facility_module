@@ -1,0 +1,119 @@
+name: CI/CD Pipeline - DLRRD Facility Management
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # JOB 1 — Build & Validate
+  # ─────────────────────────────────────────────────────────────
+  build-and-validate:
+    name: Build and Validate Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── Install all dependencies ──────────────────────────────
+      - name: Install Root Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Install Client Dependencies
+        run: npm install --legacy-peer-deps
+        working-directory: client
+
+      - name: Install Server Dependencies
+        run: npm install --legacy-peer-deps
+        working-directory: server
+
+      # ── Lint ─────────────────────────────────────────────────
+      - name: Run Client Linter (oxlint)
+        run: npm run lint
+        working-directory: client
+
+      # ── Build server (TypeScript → dist/) ────────────────────
+      - name: Build Server (TypeScript Compile)
+        run: npm run build
+        working-directory: server
+
+      # ── Build client (Vite → dist/) ──────────────────────────
+      - name: Build Client (Vite)
+        run: npm run build
+        working-directory: client
+
+      # ── Package deployment folder ─────────────────────────────
+      # Only on push to main (not on PRs)
+      - name: Package Deployment Files
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          rm -rf deploy
+          mkdir -p deploy
+
+          # Copy compiled Express server
+          cp -r server/dist deploy/dist-server
+
+          # Copy Vite-built frontend into server's public folder
+          # (Express will serve it statically)
+          mkdir -p deploy/dist-server/public
+          cp -r client/dist/. deploy/dist-server/public/
+
+          # Azure IIS config
+          cp web.config deploy/web.config
+
+          # Minimal root package.json for Azure
+          cat > deploy/package.json << 'PKGJSON'
+          {
+            "name": "dlrrd-facility-management",
+            "version": "1.0.0",
+            "main": "dist-server/index.js",
+            "scripts": { "start": "node dist-server/index.js" },
+            "engines": { "node": ">=20" }
+          }
+          PKGJSON
+
+          # Install production server deps inside deploy/
+          cd deploy
+          npm install cors dotenv express morgan mssql mime-db --legacy-peer-deps --omit=dev
+
+      # ── Upload artifact ───────────────────────────────────────
+      - name: Upload Build Artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package
+          path: deploy/
+          retention-days: 1
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 2 — Deploy to Azure App Service
+  # ─────────────────────────────────────────────────────────────
+  deploy-to-azure:
+    name: Deploy to Azure App Service
+    needs: build-and-validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-package
+          path: ./deploy
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'dlrrd-facility-management'    # ← replace with your Azure App Service name
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
+          package: ./deploy

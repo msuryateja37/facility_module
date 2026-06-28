@@ -1,0 +1,49 @@
+DEPARTMENT OF LAND REFORM &
+RURAL DEVELOPMENT (DLRRD)
+SCREENS
+Facilities Management System
+1. Supervisor (SAO/ASD) Health & Support
+2. Supervisor (SAO/ASD) Profile
+3. Admin Clerk,SAC Dashboard
+4. Admin Clerk,SAC Compliance Reviews
+5. Admin Clerk,SAC Compliance Reviews
+6. Admin Clerk, SAC During Compliance Reviews 2
+7. Admin Clerk, SAC During Compliance Reviews 3
+8. Supervisor (SAO,ASD) Dashboard
+9. Supervisor (SAO,ASD) Verification
+10. Supervisor (SAO,ASD) Upload Document
+11. Supervisor (SAO,ASD) During Verification
+12. Supervisor (SAO,ASD) During Verification 2
+13. Supervisor (SAO,ASD) Reports
+14. Supervisor (SAO,ASD) AI Assistant
+15. Supervisor (SAO,ASD) Health & Support
+19. Supervisor (SAO,ASD) Profile
+1. Deputy Director Dashboard
+2. Deputy Director Reviews
+3. Deputy Director During Reviews
+4. Deputy Director During Reviews 2
+5. Deputy Director Profile
+1. Director Dashboard
+2. Director Reviews
+3. Director During Reviews
+4. Director During Reviews
+5. Director Profile
+1. Internal Control Dashboard
+2. Internal Control Reviews
+3. Internal Control During Compliance Reviews
+4. Internal Control During Compliance Reviews 2
+5. Internal Control Archival Management
+6. Internal Control Profile
+1. Financial Department Dashboard
+2. Financial Department Reviews
+3. Financial Department During Compliance Reviews
+4. Financial Department During Compliance Reviews 2
+5. Financial Department Payment Form
+6. Financial Department Payment Form 2
+7. Financial Department Payment Form 3
+8. Financial Department Payment Form 4
+9. Financial Department Payment Form 5
+10. Financial Department Payment Form 6
+11. Financial Department Payment Form 7
+12. Financial Department Profile
+1. System Administrator Dashboard

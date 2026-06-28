@@ -1,0 +1,2883 @@
+Running OCR on 44 images...
+
+--- image1.png ---
+Health & Support
+Supervisor Workspace
+Facilities Management
+88
+Dashboard
+Verification
+Reports
+Al Assistant
+Health and Support
+8 Profile
+System status
+Integrations and platform components
+Operational
+SundryFlow core
+Web app, workflow engine
+Operational
+Al extraction service
+Document understanding
+Operational
+Email gateway
+Inbound + outbound
+Degraded
+SMS provider
+Slow delivery to MT numbers
+Operational
+Active Directory SSO
+Microsoft Entra ID
+Operational
+FBI archival API
+Long-term retention
+External
+BAS payment system
+Manual interaction only
+Help guides & onboarding
+Curated for Supervisor role
+Getting started
+Verifying an Al-extracted invoice
+4 min read
+Coding
+Understanding Score / COA suggestions
+5 min read
+Logout
+• Speno
+Supervisor
+Uptime (90d)
+99.98%
+Uptime (90d)
+99.92%
+Uptime (90d)
+99.99%
+Uptime (90d)
+98.41%
+Uptime (90d)
+99.96%
+Known issues
+Last 7 days
+SMS delivery to MTN numbers delayed by ~ 3 minutes
+Started 14:22 today • Monitoring
+Document preview failed for files › 20MB
+Resolved yesterday 09:11 - Resolved
+Uptime (90d)
+99.87%
+Uptime (90d)
+Contact support
+SLA: response within 2 business hours
+Open a ticket
+ServiceNow • IT desk
+M
+support@sundryflow.gov.za
+Email - 24/7
++27 12 555 0188
+Phone • Mon-Fri 07:00-18:00 SAST
+Workflow
+When to escalate vs return for correction
+3 min read
+Dashboard
+Reading the SLA countdown indicators
+2 min read
+
+--- image2.png ---
+Facilities Management
+88
+Dashboard
+Verification
+Reports
+* Al Assistant
+Health and Support
+Profile
+Profile
+Supervisor Workspace
+Thabo Mokoena
+Senior Administrative Officer • Public Works Directorate
+Account information
+Full name
+Thabo Mokoena
+Email
+t.mokoena@gov.za
+Directorate
+Public Works
+Employee ID
+PG-44-2098
+Phone
++27 82 555 0184
+Office
+Provincial Legislature Building
+Notification preferences
+New verification assigned
+When Al captures a new invoice that needs review
+Daily digest
+Morning summary of pending and overdue items
+Overdue items
+Items that breached the stage SLA
+Escalation activity
+When items in your scope are escalated
+In-app:
+In-app:
+Logout
+Email:
+Email: O
+SMS: O
+SMS:
+Thabo
+Supervisor
+Role & permissions
+Supervisor (SAO/ASD)
+• Verify Al-extracted invoices
+Edit extracted fields & coding
+• Submit batch to Admin Clerk
+• Apply Supervisor e-signature
+• Escalate to higher levels
+• Read-only access to audit log
+Permissions are derived from Active Directory
+group SUNDRY_SUPERVISOR_PW. |
+Electronic signature
+• Draw
+1, Upload
+O. Mokcena
+Tap to redraw signature
+o* Ro-authenticate va AD
+Signature is bound to your Active Directory identity and stamped with timestamp
+on each approval.
+
+--- image3.png ---
+Facilities Management
+Dashboard
+Verification
+Reports
+* Al Assistant
+Health and Support
+8 Profile
+Dashboard
+Admin Clerk/SAC Workspace
+Pending
+10
+SLA countdown next • 8 hours
+Items closest to breaching their stage SLA
+INV-2025-04822
+1 hour left
+Konica Minolta
+Director General Offices
+Recent activity
+Last 24 hours
+INV-2025-04812|
+In progress
+City Power (Pty) Ltd
+INV-2025-04809
+In progress
+Rand Water
+INV-2025-04812
+Overdue
+Telkom SA SOC
+INV-2025-04787
+In progress
+Bidvest Facilities
+INV-2025-04809
+Completed
+Rand Water
+Overdue
+2
+INV-2025-04812
+City Power
+Director General Offices
+Completed
+25
+4 hours left
+INV-2025-04809
+Rand Water
+Municipal Annex - Block C
+7 hours left
+Thabo
+Admin Clerk/SAC
+Returned
+3
+INV-2025-04787
+Bidvest Facilities
+Director General Offices
+18 hours left
+R 248 350,42
+R 87 421.10
+R 14 882,55
+R 332 010,00
+R 1204 988,30
+
+--- image4.png ---
+Reviews
+Admin Clerk/SAC Workspace
+Facilities Management
+88
+Dashboard
+Compliance Reviews
+Profile
+Search
+All • 6
+Pending verification • 7
+INV-2025-04812 In progress
+City Power (Pty) Ltd
+Provincial Legislature Building • April 2026 • 24 days ago
+SLA - 1h left
+PFMA Deadline Approaching
+7 Filter
+In Progress • 3
+Overdue • 2
+R 248 350,42
+PROVINCIAL
+Score: 9/10
+INV-2025-04798 Overdue
+Telkom SA SOC
+Provincial Legislature Building • April 2026 • 31 days ago
+SLA - 8h over
+Over PFMA Deadline
+A Missing supporting docs
+A Low Al confidence
+R 14 882.55
+PROVINCIAL
+Score: 7/10
+A SLA breached
+INV-2025-04770 Completed
+Eskom Holdings
+Regional Depot - March 2026 • 29 days ago
+SLA - Oh left
+PEMA Deadline Approaching
+R1204 988,30
+NATIONAL
+Score: 10/10
+Logout
+5 Mendo
+Internal Control
+INV-2025-04809 In progress
+Rand Water
+Municipal Annex - Block C • April 2026 • 15 days ago
+SLA - 8h left ) (Within PFMA Deadline
+R 87 421,10
+PROVINCIAL
+Score: 8/10
+INV-2025-04787 In progress
+Bidvest Facilities
+Director General Offices • March 2026 • 10 days ago
+SLA - 18h left ) (Within PFMA Deadline
+A Missing supporting docs
+R 332 010,00
+PROVINCIAL
+Score: 9/10
+INV-2025-04822 In progress
+Konica Minolta
+Director General Offices • May 2026 • 6 days ago
+SLA - 7h left ) (Within PFMA Deadline
+R 28 410,75
+Score: 10/10
+
+--- image5.png ---
+Facilities Management
+88
+Dashboard
+Compliance Reviews
+& Profile
+Logout
+INV-2025-04812
+Admin Clerk/SAC Workspace
+2
+Invoice upload by
+Supervisor
+Admin Clerk
+Verification
+Documents
+All required documents must be uploaded.
+Invoice - City Power (Apr 2026) • View
+Uploaded
+Batch Report - Apr 2026 • View
+Uploaded
+Sundry Payment Form • View
+Uploaded
+Calculation Sheet • View
+Uploaded
+Municipal Services Certificate • View
+Uploaded
+Exemption Memorandum (CFO) • View
+Uploaded
+Supporting Document 1 Optional) • View
+Uploaded
+Supporting Document 2 (Optional) • View
+Uploaded
+*Required documents
+All documents uploaded
+Extracted Data
+Invoice Number
+9001234567
+Invoice Date
+30/04/2026
+Account Number
+1234567890
+Property/Building
+Provincial Legislature Building
+V Submit to Supervisor
+•
+Thabo
+Admin Clerk/SAC
+3
+Supervisor
+Verification
+-
+LO
+Director
+Approval
+Verify
+Verify
+Verify
+Verify
+Verify
+Verify
+Verify
+Deputy Director
+Review
+Batch Summary
+Batch ID
+INV-2025-04812
+SLA Due Date
+01/06/2026 (30 days)
+Total Amount
+R 248 350,42
+Al Confidence Score
+9/10
+High confidence
+Low Confidence Fields:
+None
+Al Suggested Allocation:
+Electricity - Bulk Supply
+6-200-10-11-000 → 98%
+Internal
+Control QC
+Received Date
+02/05/2026
+Days Remaining
+22 days
+Service Provider
+City Power (Pty) Ltd
+Audit History
+| 5/22/2026, 9:37:39 AM - clerk
+Al extraction completed • 2 hours spent
+Confidence 94%|
+5/22/2026, 9:37:39 AM - clerk
+Case created from invoice email • 1.5 hours spent
+Finance
+Accounting
+Override Confidence Score
+Amount (ZAR)
+R 248 350,42
+Service Provider
+City Power (Pty) Ltd
+Billing Period / Month
+April 2026
+Description
+Electricity Services - April 2026
+Refer Back
+Q Escalate
+Comment
+
+--- image6.png ---
+Facilities Management
+88
+Dashboard
+Compliance Reviews
+& Profile
+INV-2025-04812
+Admin Clerk/SAC Workspace
+2 -
+-
+Invoice upload by
+Supervisor
+Admin Clerk
+Verification
+Supervisor
+Verification
+Deputy Director
+Review
+Admin Findings
+Admin Stamp
+User Name
+Employee Number
+Thabo Mokoena
+PG-44-2098
+Date
+Time
+01/06/2026 (30 days)
+10:56 am
+Stamp is bound to your Active Directory identity and stamped with timestamp on each approval.
+Sundry Payment Form & Calculation Sheet
+Directorate
+Payment Description
+Facilities Management Services
+Monthly utility - Eskom Holdings SOC Ltd
+Supplier
+Supplier Account
+Eskom Holdings SOC Ltd
+8001-44210-7
+#
+Description
+Qty =
+Unit Price
+Amount +
+Electricity consumption main building
+kWh
+48200
+8.45
+R 407 290,00
+Demand charael
+KVA
+52340.75
+R 52 340,75
+Network conscity charge
+Each
+22720
+R 22 720,00
+Invoice Total
+R 482 350, 75
+Total Allocated
+R 482 350, 75
+Logout
+V Submit to Supervisor
+Refer Back
+Director
+Approval
+Internal
+Control QC
+Thabo
+Admin Clerk/SAC
+Finance
+Accounting
+Batch Reference
+BCH-2026-001
+Total Invoice Amount
+R 482 350,75
+Al Score
+5101-Utilities-Electricity
+5102-Utilities-Demand
+5103-Utilities-Network
+Variance
+R0, 00
+Verified Score
+5101-Utilities-
+Electricity
+5102-Utilities-
+Electricity
+5103-Utilities-
+Electricity
+Allocated -
+407290
+52340.75
+22720
+Escalate
+Comment
+
+--- image7.png ---
+Profile
+Admin Clerk/SAC Workspace
+Facilities Management
+88
+Dashboard
+Compliance Reviews
+Profile
+Thabo Mokoena
+Admin Clerk • Public Works Directorate
+Account information
+Full name
+Thabo Mokoena
+Email
+t.mokoena@gov.za
+Directorate
+Public Works
+Notification preferences
+New reviews assigned
+When a new invoice that needs review
+Daily digest
+Morning summary of pending and overdue items
+Overdue items
+Items that breached the stage SLA
+Escalation activity
+When items in your scope are escalated
+Logout
+Employee ID
+PG-44-2098
+Phone
++27 82 555 0184
+Office
+Provincial Legislature Building
+In-app:
+In-app:
+Email:
+Email: O
+SMS:
+SMS:
+Armino
+Admin Clerk/SAC
+Role & permissions
+Internal Control
+• Review Al-extracted invoice data
+• Correct invoice fields where necessary
+• Complete the calculation sheet
+• Complete the sundry payment form
+• Upload supporting documents
+• Apply digital verification stamp
+• Submit compiled batch to Supervisor
+Permissions are derived from Active Directory
+group SUNDRY_ADMIN_CLERK_PW.
+Admin Clerk Verification Stamp
+User Name
+Employee Number
+Thabo Mokoena
+PG-44-2098
+Date
+Time
+01/06/2026 (30 days)
+10:56 am
+•* Re-authenticate via AD
+Stamp is bound to your Active Directory identity and stamped with timestamp on
+each approval.
+
+--- image8.png ---
+Facilities Management
+Dashboard
+Verification
+Reports
+* Al Assistant
+Health and Support
+8 Profile
+Dashboard
+Supervisor Workspace
+Pending verification. Awaiting your
+review
+6
+SLA countdown next • 8 hours
+Items closest to breaching their stage SLA
+INV-2025-04822
+Konica Minolta
+Director General Offices
+Recent activity
+Last 24 hours
+INV-2025-04812
+In progress
+City Power (Pty) Ltd
+INV-2025-04809
+In progress
+Rand Water
+INV-2025-04812
+Overdue
+Telkom SA SOC
+INV-2025-04787
+In progress
+Bidvest Facilities
+INV-2025-04809
+Completed
+Rand Water
+Overdue Items. Past SLA -action
+required
+1
+1 hour left
+INV-2025-04812
+City Power
+Director General Offices
+4 hours left
+Logout
+Awaiting Admin Clerk. Routed
+downstream
+3
+INV-2025-04809|
+Rand Water
+Municipal Annex - Block C
+7 hours left
+Thabo
+Supervisor
+Returned cases. Sent back for
+correction
+2
+INV-2025-04787
+Bidvest Facilities
+Director General Offices
+18 hours left
+R 248 350,42
+R 87 421.10
+R 14 882,55
+R 332 010,00
+R 1204 988,30
+
+--- image9.png ---
+Verification
+Supervisor Workspace
+Facilities Management
+88
+Dashboard
+Verification
+Reports
+Al Assistant
+Health and Support
+8 Profile
+Search i
+All • 6
+Pending review • 7
+INV-2025-04812 In progress
+City Power (Pty) Ltd
+Provincial Legislature Building • April 2026 • 24 days ago
+SLA - 1h left
+PFMA Deadline Approaching
+• Filter
+Al low confidence • 3
+Overdue • 2
+R 248 350,42
+PROVINCIAL
+Score: 9/10
+INV-2025-04798 Overdue
+Telkom SA SOC
+Provincial Legislature Building • April 2026 • 31 days ago
+SLA - 8h over
+Over PFMA Deadline
+A Missing supporting docs
+A Low Al confidence
+R 14 882.55
+PROVINCIAL
+Score: 7/10
+A SLA breached
+INV-2025-04770 Completed
+Eskom Holdings
+Regional Depot - March 2026 • 29 days ago
+SLA - Oh left
+PEMA Deadline Approaching
+R1204 988,30
+NATIONAL
+Score: 10/10
+Logout
+INV-2025-04809 In progress
+Rand Water
+Municipal Annex - Block C • April 2026 • 15 days ago
+SLA - 8h left ) (Within PFMA Deadline
+INV-2025-04787 In progress
+Bidvest Facilities
+Director General Offices • March 2026 • 10 days ago
+SLA - 18h left ) (Within PFMA Deadline
+A Missing supporting docs
+INV-2025-04822 In progress
+Konica Minolta
+Director General Offices • May 2026 • 6 days ago
+SLA - 7h left ) (Within PFMA Deadline
+Thabo
+Supervisor
+L Upload
+R 87 421,10
+PROVINCIAL
+Score: 8/10
+R 332 010,00
+PROVINCIAL
+Score: 9/10
+R 28 410,75
+Score: 10/10
+
+--- image10.png ---
+Facilities Management
+88
+Dashboard
+Verification
+Reports
+* Al Assistant
+Health and Support
+8 Profile
+INV-2025-04812
+Supervisor Workspace
+Invoice upload by
+Supervisor
+Admin Clerk
+Verification
+Receipt Summary
+Batch ID
+INV-2025-04812
+Received By
+Thabo M.
+Supervisor (SAO)
+Inbox & Upload
+Drag and drop files here, or click to browse
+Choose Files
+Supported: PDF, DOCX, JPG, PNG (Max 50MB each)
+L, Upload Files
+E Upload Folder
+Nodal Point Receipt Date (if applicable)
+02/05/2026 09:41
+Exemption Memorandum (Permanent Supporting Document)
+DRRLD - Exemption from Nodal Point Process.pdf
+Uploaded on 15/04/2026 by Thabo M.
+This document is stored as an immutable supporting file and cannot be deleted.
+Important
+The Official Receipt Date & Time captured above is the start date for the
+30-day PFMA payment tracking.
+Supervisor
+Verification
+Deputy Director
+Review
+Official Receipt Date & Time
+02/05/2026 09:41
+Days Since Receipt
+22 days
+Invoice Queue (Recieved)
+Q Search
+#
+Invoice Number
+1
+9001234567
+INV-CP-05026
+ESK-900345
+4
+ESK-900344
+MUN-CT-1245
+6
+MUN-JHB-778
+MUN-TSH-889
+Show
+1 v
+of 102 results
+Save Receipt
+Director
+Approval
+Thabo
+Supervisor
+Finance
+Accounting
+Service Provider
+City Power (Pty) Ltd
+Eskom Holdings
+SOC Ltd
+Eskom Holdings
+SOC Ltd
+Eskom Holdings
+SOC Ltd
+Ekurhuleni
+Municipality
+City of
+Johannesburg
+shwan
+lunicipalit
+Internal
+Control QC
+Source Inbox / Reference
+municipal.services@dlrrd.gov.za
+Email Ref: MS-78453
+30-Day PFMA Deadline
+01/06/2026
+8 days remaining
+Filter
+• Filter
+Received Date
+02/05/2026
+02/05/2026
+01/05/2026
+01/05/2026
+30/04/2026
+30/04/2026
+29/04/2026
+C Clear
+• Filter
+7 Filter
+Amount (ZAR)
+Status
+R 248 350,42
+R 185 900,10
+R 532 784,90
+R 411 239,15
+R 97450,00
+R 76 880,20
+R 63 120,00
+3
+Received
+Pending
+Review
+Received
+Pending
+Review
+Received
+Pending
+Review
+Received
+...
+11
+V Verify & Submit to Admin Clerk
+Logout
+
+--- image11.png ---
+INV-2025-04812
+Supervisor Workspace
+Facilities Management
+88
+Dashboard
+Verification
+Reports
+Al Assistant
+Health and Support
+8 Profile
+3
+Supervisor
+Verification
+Logout
+Uploaded by
+Supervisor
+Admin Clerk
+Verification
+Documents
+All required documents must be uploaded.
+Invoice - City Power (Apr 2026) • View
+Uploaded
+Batch Report - Apr 2026 • View
+Uploaded
+Sundry Payment Form • View
+Uploaded
+Calculation Sheet • View
+Uploaded
+Municipal Services Certificate • View
+Uploaded
+Exemption Memorandum (CFO) • View
+Uploaded
+Supporting Document 1 (Optional) • View
+Uploaded
+Supporting Document 2 (Optional) • View
+Uploaded i
+*Required documents
+All documents uploaded
+Extracted Data Human validation required
+Invoice Number
+9001234567
+Invoice Date
+30/04/2026
+Account Number
+1234567890
+Property / Building
+Provincial Legislature Building
+V Verify & Submit to Admin Clerk
+Deputy Director
+Review
+Director
+Approval
+Batch Summary
+Batch ID
+INV-2025-04812
+SLA Due Date
+01/06/2026 (30 days)
+Total Amount
+R 248 350,42
+Al Confidence Score
+9/10
+High confidence
+Low Confidence Fields:
+None
+Al Suggested Allocation:
+Electricity - Bulk Supply
+6-200-10-11-000 → 98%
+Amount (ZAR)
+R 248 350,42
+Service Provider
+City Power (Pty) Ltd
+Billing Period / Month
+April 2026
+Description
+Electricity Services - April 2026
+& Refer Back to Admin Clerk
+• Escalate
+Thabo
+Supervisor
+Internal
+Control QC
+Received Date
+02/05/2026
+Days Remaining
+22 days
+Service Provider
+City Power (Pty) Ltd
+Finance
+Accounting
+Override Confidence Score
+• Edit
+• Comment
+
+--- image12.png ---
+INV-2025-04812
+Supervisor Workspace
+Thabo
+Supervisor
+Facilities Management
+88
+Dashboard
+Verification
+Reports
+Invoice upload by
+Supervisor
+Admin Clerk
+Verification
+3
+Supervisor
+Verification
+-
+Deputy Director
+Review
+Director
+Approval
+Internal
+Control QC
+Finance
+Accounting
+Signature
+Al Assistant
+Electronic signature
+Health and Support
+Draw
+L Upload Again
+8 Profile
+o* Re-authonticate via AD
+T. Mokcena
+Tap to redraw signature
+Signature is bound to your Active Directory identity and stamped with timestamp on each approval.
+Logout
+V Verify & Submit to Admin Clerk
+A Refer Back to Admin Clerk
+Q Escalate i
+• Comment
+
+--- image13.png ---
+Reports
+Supervisor Workspace
+Thabo
+Supervisor
+Facilities Management
+88
+Dashboard
+Verification
+Reports
+* Al Assistant
+Health and Support
+8 Profile
+Last 6 Months
+All directories V
+All statuses V
+*, Export
+Invoices processed
+27,962
++8.4%
+Avg. processing time
+6.2 days
+-0.7d
+SLA compliance
+94%
++1pp
+Escalation frequency
+0.74%
+-0.3pp
+SLA compliance
+30-day PFMA payment rule
+100
+75
+50
+25
+Invoices processed
+Total per month, escalation overlay
+6000
+4500
+шІ!||||
+1500
+Jan.
+Feb. Mar. Apr. May.
+June.
+July.
+Aug.
+Sept.
+Oct.
+Des
+Jan.
+Feb.
+Mar. Apr.
+May.
+July.
+Aug.
+Sept. Oct. Nov. Des
+Logout
+
+--- image14.png ---
+Al Assistant
+Supervisor Workspace
+Facilities Management
+88
+Dashboard
+Smart Assistant
+Trained on your workflow, invoices and audit log
+Verification
+Reports
+Good morning, Thabo. You have 3 invoices awaiting verification and 2 are nearing
+SLA breach. Ask me anything - try one of the suggestions below.
+Al Assistant
+Health and Support
+& Profile
+I'm tracking 3 high-risk invoices today based on amount anomalies, missing
+documents and supplier history. Two are already in your queue.
+INV-2025-04787 Bidvest amount anomaly] INV-2025-04822: Konica • missing VAT line
+Ask about invoices, SLAs, anomalies...
+Logout
+Thabo
+Supervisor
+Show high-risk invoices
+7 Send
+
+--- image15.png ---
+Facilities Management
+88
+Dashboard
+Verification
+Reports
+* Al Assistant
+Health and Support
+Profile
+Profile
+Supervisor Workspace
+Thabo Mokoena
+Senior Administrative Officer • Public Works Directorate
+Account information
+Full name
+Thabo Mokoena
+Email
+t.mokoena@gov.za
+Directorate
+Public Works
+Employee ID
+PG-44-2098
+Phone
++27 82 555 0184
+Office
+Provincial Legislature Building
+Notification preferences
+New verification assigned
+When Al captures a new invoice that needs review
+Daily digest
+Morning summary of pending and overdue items
+Overdue items
+Items that breached the stage SLA
+Escalation activity
+When items in your scope are escalated
+In-app:
+In-app:
+Logout
+Email:
+Email: O
+SMS: O
+SMS:
+Thabo
+Supervisor
+Role & permissions
+Supervisor (SAO/ASD)
+• Verify Al-extracted invoices
+Edit extracted fields & coding
+• Submit batch to Admin Clerk
+• Apply Supervisor e-signature
+• Escalate to higher levels
+• Read-only access to audit log
+Permissions are derived from Active Directory
+group SUNDRY_SUPERVISOR_PW. |
+Electronic signature
+• Draw
+1, Upload
+O. Mokcena
+Tap to redraw signature
+o* Ro-authenticate va AD
+Signature is bound to your Active Directory identity and stamped with timestamp
+on each approval.
+
+--- image16.png ---
+Facilities Management
+88
+Dashboard
+Reviews
+Profile
+Dashboard
+Deputy Director Workspace
+Pending Review
+8
+SLA countdown next • 8 hours
+Items closest to breaching their stage SLA
+INV-2025-04822
+1 hour left
+Konica Minolta
+Director General Offices
+Recent activity
+Last 24 hours
+INV-2025-04812
+In progress
+City Power (Pty) Ltd
+INV-2025-04809
+In progress
+Rand Water
+INV-2025-04812
+Overdue
+Telkom SA SOC
+INV-2025-04787
+In progress
+Bidvest Facilities
+INV-2025-04809
+Completed
+Rand Water
+Referred Back
+3
+INV-2025-04812
+City Power
+Director General Offices
+Logout
+4 hours left
+Completed
+7
+INV-2025-04809|
+Rand Water
+Municipal Annex - Block C
+7 hours left
+Thabo
+Deputy Director
+Overdue
+2
+INV-2025-04787
+Bidvest Facilities
+Director General Offices
+18 hours left
+R 248 350,42
+R 87 421.10
+R 14 882,55
+R 332 010,00
+R 1204 988,30
+
+--- image17.png ---
+Reviews
+Deputy Director Workspace
+Facilities Management
+88
+Dashboard
+Reviews
+Profile
+Search
+All • 6
+Pending review • 7
+INV-2025-04812 In progress
+7 Filter
+Al low confidence • 3
+City Power (Pty) Ltd
+Provincial Legislature Building • April 2026 • 24 days ago
+SLA - 1h left
+PFMA Deadline Approaching
+Overdue • 2
+R 248 350,42
+PROVINCIAL
+Score: 9/10
+INV-2025-04798 Overdue
+Telkom SA SOC
+Provincial Legislature Building • April 2026 • 31 days ago
+SLA - 8h over
+Over PFMA Deadline
+A Missing supporting docs
+A Low Al confidence
+R 14 882.55
+PROVINCIAL
+Score: 7/10
+A SLA breached
+INV-2025-04770 Completed
+Eskom Holdings
+Regional Depot - March 2026 • 29 days ago
+SLA - Oh left
+PEMA Deadline Approaching
+R1204 988,30
+NATIONAL
+Score: 10/10
+Logout
+INV-2025-04809 In progress
+Rand Water
+Municipal Annex - Block C • April 2026 • 15 days ago
+SLA - 8h left ) (Within PFMA Deadline
+INV-2025-04787 In progress
+Bidvest Facilities
+Director General Offices • March 2026 • 10 days ago
+SLA - 18h left ) (Within PFMA Deadline
+A Missing supporting docs
+INV-2025-04822 In progress
+Konica Minolta
+Director General Offices • May 2026 • 6 days ago
+SLA - 7h left ) (Within PFMA Deadline
+Deputy Director
+R 87 421,10
+PROVINCIAL
+Score: 8/10
+R 332 010,00
+PROVINCIAL
+Score: 9/10
+R 28 410,75
+Score: 10/10
+
+--- image18.png ---
+INV-2025-04812
+Deputy Director Workspace
+Facilities Management
+88
+Dashboard
+Reviews
+& Profile
+Logout
+• —
+4
+-
+Uploaded by
+Supervisor
+Admin Clerk
+Verification
+Supervisor
+Verification
+Deputy Director
+Review
+Director
+Approval
+Documents
+All required documents must be uploaded.
+LOCKED for Deputy Director
+Batch Summary
+Invoice - City Power (Apr 2026) • View
+Uploaded
+Batch Report - Apr 2026 • View
+Uploaded
+Sundry Payment Form • View
+Uploaded
+Calculation Sheet • View
+Uploaded
+Municipal Services Certificate • View
+Uploaded
+Exemption Memorandum (CFO) • View
+Uploaded
+Supporting Document 1 (Optional) • View
+Uploaded
+Supporting Document 2 (Optional) • View
+Uploaded
+*Required documents
+All documents uploaded
+Extracted Data LOCKED for Deputy Director
+Invoice Number
+9001234567
+Invoice Date
+30/04/2026
+Account Number
+1234567890
+Property / Building
+Provincial Legislature Building
+Batch ID
+INV-2025-04812
+SLA Due Date
+01/06/2026 (30 days)
+Total Amount
+R 248 350.42
+Al Confidence Score
+9/10
+High confidence
+Low Confidence Fields:
+None
+Al Suggested Allocation:
+Electricity - Bulk Supply
+6-200-10-11-000 → 98%
+Amount (ZAR)
+R 248 350,42
+Service Provider
+City Power (Pty) Ltd
+Billing Period / Month
+April 2026
+Description
+Electricity Services - April 2026
+V Sign & Route to Director
+Refer Back
+Q Escalate
+Internal
+Control QC
+Received Date
+02/05/2026
+Days Remaining
+22 days
+Service Provider
+City Power (Pty) Ltd
+Thabo
+Deputy Director
+Finance
+Accounting
+LOCKED for Deputy Director
+( Comment
+
+--- image19.png ---
+INV-2025-04812
+Deputy Director Workspace
+Thabo
+Deputy Director
+Facilities Management
+88
+Dashboard
+Reviews
+8 Profile
+Uploaded by
+Supervisor
+Admin Clerk
+Verification
+Supervisor
+Verification
+4
+Deputy Director
+Review
+-
+Director
+Approval
+Internal
+Control QC
+Finance
+Accounting
+Signature
+Electronic signature
+Draw
+L Upload Again
+o* Re-authonticate via AD
+T. Mokoena
+Tap to redraw signature
+Signature is bound to your Active Directory identity and stamped with timestamp on each approval.
+Signature History
+Supervisor
+Signed
+| Deputy Director
+[Pending
+I Director
+| Pending
+Audit History
+5/22/2026, 9:37:39 AM - clerk
+Al extraction completed
+Confidence 94%
+5/22/2026, 9:37:39 AM - clerk
+Case created from invoice email
+Logout
+V Sign & Route to Director
+- Refer Back
+Q Escalate
+• Comment
+
+--- image20.png ---
+Facilities Management
+88
+Dashboard
+Reviews
+Profile
+Profile
+Deputy Director Workspace
+Thabo Mokoena
+Deputy Responsibility Manager • Public Works Directorate
+Account information
+Full name
+Thabo Mokoena
+Email
+t.mokoena@gov.za
+Directorate
+Public Works
+Employee ID
+PG-44-2098
+Phone
++27 82 555 0184
+Office
+Provincial Legislature Building
+Notification preferences
+New reviews assigned
+When a new review is received
+Daily digest
+Morning summary of pending and overdue items
+Overdue items
+Items that breached the stage SLA
+Escalation activity
+When items in your scope are escalated
+In-app:
+In-app: |
+Logout
+Email:
+Email: O
+SMS: O
+SMS:
+Thabo
+Deputy Director
+Role & permissions
+Deputy Director
+• View Documents
+View Invoice Data
+• View Audit Trail
+• Add Comments
+• Refer Back
+• Sign Batch
+• Route to Director
+Permissions are derived from Active Directory
+group SUNDRY_DEPUTY_DIRECTOR_PW.
+Electronic signature
+• Draw
+1, Upload
+O. Mokcena
+Tap to redraw signature
+o* Ro-authenticate via AD
+Signature is bound to your Active Directory identity and stamped with timestamp
+on each approval.
+
+--- image21.png ---
+Facilities Management
+88
+Dashboard
+Reviews
+Profile
+Dashboard
+Director Workspace
+Awaiting Approval
+8
+SLA countdown next • 8 hours
+Items closest to breaching their stage SLA
+INV-2025-04822
+1 hour left
+Konica Minolta
+Director General Offices
+Nearing Deadline
+3
+INV-2025-04812
+City Power
+Director General Offices
+Recent activity
+Last 24 hours
+INV-2025-04812|
+In progress
+City Power (Pty) Ltd
+INV-2025-04809
+Rand Water
+INV-2025-04812
+Telkom SA SOC
+INV-2025-04787
+Bidvest Facilities
+INV-2025-04809
+Rand Water
+In progress
+Overdue
+In progress
+Completed
+Logout
+4 hours left
+Completed
+7
+INV-2025-04809
+Rand Water
+Municipal Annex - Block C
+7 hours left
+Thabo
+Director
+Overdue
+2
+INV-2025-04787
+Bidvest Facilities
+Director General Offices
+18 hours left
+R 248 350,42
+R 87 421.10
+R 14 882,55
+R 332 010,00
+R 1204 988,30
+
+--- image22.png ---
+Reviews
+Director Workspace
+Facilities Management
+88
+Dashboard
+Reviews
+8 Profile
+Search
+All • 6
+Pending review • 7
+INV-2025-04812 In progress
+City Power (Pty) Ltd
+Provincial Legislature Building • April 2026 • 24 days ago
+SLA - 1h left
+PFMA Deadline Approaching
+• Filter
+Al low confidence • 3
+Overdue • 2
+R 248 350,42
+PROVINCIAL
+Score: 9/10
+INV-2025-04798 Overdue
+Telkom SA SOC
+Provincial Legislature Building • April 2026 • 31 days ago
+SLA - 8h over
+Over PFMA Deadline
+A Missing supporting docs
+A Low Al confidence
+R 14 882.55
+PROVINCIAL
+Score: 7/10
+A SLA breached
+INV-2025-04770 Completed
+Eskom Holdings
+Regional Depot - March 2026 • 29 days ago
+SLA - Oh left
+PEMA Deadline Approaching
+R1204 988,30
+NATIONAL
+Score: 10/10
+Logout
+1 reaso
+Director
+INV-2025-04809 In progress
+Rand Water
+Municipal Annex - Block C • April 2026 • 15 days ago
+SLA - 8h left ) (Within PFMA Deadline
+R 87 421,10
+PROVINCIAL
+Score: 8/10
+INV-2025-04787 In progress
+Bidvest Facilities
+Director General Offices • March 2026 • 10 days ago
+SLA - 18h left ) (Within PFMA Deadline
+A Missing supporting docs
+R 332 010,00
+PROVINCIAL
+Score: 9/10
+INV-2025-04822 In progress
+Konica Minolta
+Director General Offices • May 2026 • 6 days ago
+SLA - 7h left ) (Within PFMA Deadline
+R 28 410,75
+Score: 10/10
+
+--- image23.png ---
+INV-2025-04812
+Director Workspace
+•
+• Thabo
+Director
+Facilities Management
+88
+Dashboard
+Reviews
+& Profile
+Logout
+• —
+-
+Uploaded by
+Supervisor
+Admin Clerk
+Verification
+Supervisor
+Verification
+Documents
+All required documents must be uploaded.
+LOCKED for Director
+Invoice - City Power (Apr 2026) • View
+Uploaded
+Batch Report - Apr 2026 • View
+Uploaded
+Sundry Payment Form • View
+Uploaded
+Calculation Sheet • View
+Uploaded
+Municipal Services Certificate • View
+Uploaded
+Exemption Memorandum (CFO) • View
+Uploaded
+Supporting Document 1 (Optional) • View
+Uploaded
+Supporting Document 2 (Optional) • View
+Uploaded
+*Required documents
+All documents uploaded
+Extracted Data LOCKED for Director
+Invoice Number
+9001234567
+Invoice Date
+30/04/2026
+Account Number
+1234567890
+Property / Building
+Provincial Legislature Building
+V Approve Expenditure
+-
+Deputy Director
+Review
+Director
+Approval
+Batch Summary
+Batch ID
+INV-2025-04812
+SLA Due Date
+01/06/2026 (30 days)
+Total Amount
+R 248 350.42
+Al Confidence Score
+9/10
+High confidence
+Low Confidence Fields:
+None
+Al Suggested Allocation:
+Electricity - Bulk Supply
+6-200-10-11-000 → 98%
+Amount (ZAR)
+R 248 350,42
+Service Provider
+City Power (Pty) Ltd
+Billing Period / Month
+April 2026
+Description
+Electricity Services - April 2026
+Refer Back
+Q Escalate
+Internal
+Control QC
+Received Date
+02/05/2026
+Days Remaining
+22 days
+Service Provider
+City Power (Pty) Ltd
+Finance
+Accounting
+LOCKED for Director
+( Comment
+
+--- image24.png ---
+INV-2025-04812
+Director Workspace
+•
+Thabo
+Director
+Facilities Management
+88
+Dashboard
+Reviews
+8 Profile
+Uploaded by
+Supervisor
+Admin Clerk
+Verification
+Supervisor
+Verification
+Deputy Director
+Review
+Director
+Approval
+Internal
+Control QC
+Finance
+Accounting
+Signature
+Electronic signature
+Draw
+L Upload Again
+o* Ro-authenticate via AD
+T. Mokoena
+Tap to redraw signature
+Signature is bound to your Active Directory identity and stamped with timestamp on each approval.
+Signature History
+Supervisor
+Signed
+1 Deputy Director
+Signed
+I Director
+| Pending
+Audit History
+5/22/2026, 9:37:39 AM - clerk
+Al extraction completed
+Confidence 94%
+5/22/2026, 9:37:39 AM - clerk
+Case created from invoice email
+Logout
+V Approve Expenditure
+Refer Back
+Q Escalate
+• Comment
+
+--- image25.png ---
+Profile
+Deputy Director Workspace
+Facilities Management
+88
+Dashboard
+Reviews
+Profile
+Thabo Mokoena
+Responsibility Manager • Public Works Directorate
+Account information
+Full name
+Thabo Mokoena
+Email
+t.mokoena@gov.za
+Directorate
+Public Works
+Employee ID
+PG-44-2098
+Phone
++27 82 555 0184
+Office
+Provincial Legislature Building
+Notification preferences
+New reviews assigned
+When a new review is received
+Daily digest
+Morning summary of pending and overdue items
+Overdue items
+Items that breached the stage SLA
+Escalation activity
+When items in your scope are escalated
+In-app:
+In-app: |
+Logout
+Email:
+Email: O
+SMS:
+SMS:
+• Director
+Role & permissions
+Director
+• View full payment batches
+• View all supporting documents
+• View payment vault
+• Access batches via authenticated link
+• Perform quality/compliance review
+• Apply digital verification stamp
+• Approve quality check
+• Refer batches back with comments
+• View audit trail
+• Download completed archival packages
+Permissions are derived from Active Directory
+group SUNDRY_DIRECTOR_PW.
+Electronic signature
+• Draw
+1, Upload
+e. Mokcena
+Tap to redraw signature
+o* Ro-authenticate via AD
+Signature is bound to your Active Directory identity and stamped with timestamp
+on each approval.
+
+--- image26.png ---
+Internal Control
+Directorate
+Dashboard
+Compliance Reviews
+Archival Management
+& Profile
+Dashboard
+Internal Control Workspace
+Awaiting QC Review
+8
+Referred Back
+3
+SLA countdown next • 8 hours
+Items closest to breaching their stage SLA
+INV-2025-04822
+1 hour left
+Konica Minolta
+Director General Offices
+Recent activity
+Last 24 hours
+INV-2025-04812|
+In progress
+City Power (Pty) Ltd
+INV-2025-04809
+In progress
+Rand Water
+INV-2025-04812
+Overdue
+Telkom SA SOC
+INV-2025-04787
+In progress
+Bidvest Facilities
+INV-2025-04809
+Completed
+Rand Water
+INV-2025-04812
+City Power
+Director General Offices
+Logout
+4 hours left
+QC Passed
+7
+INV-2025-04809|
+Rand Water
+Municipal Annex - Block C
+7 hours left
+•
+• Thabo
+Internal Control
+Overdue
+2
+INV-2025-04787
+Bidvest Facilities
+Director General Offices
+18 hours left
+R 248 350,42
+R 87 421.10
+R 14 882,55
+R 332 010,00
+R 1204 988,30
+
+--- image27.png ---
+Reviews
+Internal Control Workspace
+Internal Control
+Directorate
+88
+Dashboard
+Compliance Reviews
+Archival Management
+8 Profile
+Search
+All • 6
+Pending review • 7
+INV-2025-04812 In progress
+7 Filter
+Over Deadline • 3
+City Power (Pty) Ltd
+Provincial Legislature Building • April 2026 • 24 days ago
+SLA - 1h left
+PFMA Deadline Approaching
+Within Deadline • 2
+R 248 350,42
+PROVINCIAL
+Score: 9/10
+Director Approval: 05/04/2026
+INV-2025-04798 Overdue
+Telkom SA SOC
+Provincial Legislature Building • April 2026 • 31 days ago
+SLA - 8h over
+Over PFMA Deadline
+A Missing supporting docs
+A Low Al confidence
+R 14 882,55
+PROVINCIAL
+Score: 7/10
+Director Approval: 15/04/2026
+A SLA breached
+INV-2025-04770 Completed
+Eskom Holdings
+Regional Depot - March 2026 • 29 days ago
+SLA - Oh left
+PEMA Deadline Approaching
+R1204 988,30
+NATIONAL
+Score: 10/10
+Director Approval: 16/04/2026
+Logout
+INV-2025-04809 In progress
+Rand Water
+Municipal Annex - Block C • April 2026 • 15 days ago
+SLA - 8h left ) (Within PFMA Deadline
+INV-2025-04787 In progress
+Bidvest Facilities
+Director General Offices • March 2026 • 10 days ago
+SLA - 18h left ) (Within PFMA Deadline
+A Missing supporting docs
+INV-2025-04822 In progress
+Konica Minolta
+Director General Offices • May 2026 • 6 days ago
+SLA - 7h left ) (Within PFMA Deadline
+* Mento
+Internal Control
+R 87 421,10
+PROVINCIAL
+Score: 8/10
+Director Approval: 05/05/2026
+R 332 010,00
+PROVINCIAL
+Score: 9/10
+Director Approval: 26/03/2026
+R 28 410,75
+Score: 10/10
+Director Approval: 23/05/2026
+
+--- image28.png ---
+INV-2025-04812
+Director Workinternal Controlspace
+Internal Control
+Directorate
+88
+Dashboard
+Compliance Reviews
+Archival Management
+8 Profile
+Logout
+• —
+• -
+-
+Uploaded by
+Supervisor
+Admin Clerk
+Verification
+Supervisor
+Verification
+Deputy Director
+Review
+Director
+Approval
+Documents
+All required documents must be uploaded.
+LOCKED for Internal Control
+Batch Summary
+Invoice - City Power (Apr 2026) • View
+Uploaded
+Batch Report - Apr 2026 • View
+Uploaded
+Sundry Payment Form • View
+Uploaded
+Calculation Sheet • View
+Uploaded
+Municipal Services Certificate • View
+Uploaded
+Exemption Memorandum (CFO) • View
+Uploaded
+Supporting Document 1 (Optional) • View
+Uploaded
+Supporting Document 2 (Optional) • View
+Uploaded
+*Required documents
+All documents uploaded
+Extracted Data LOCKED for Internal Control
+Invoice Number
+9001234567
+Invoice Date
+30/04/2026
+Account Number
+1234567890
+Property / Building
+Provincial Legislature Building
+V Approve QC
+Batch ID
+INV-2025-04812
+SLA Due Date
+01/06/2026 (30 days)
+Total Amount
+R 248 350.42
+Al Confidence Score
+9/10
+High confidence
+Low Confidence Fields:
+None
+Al Suggested Allocation:
+Electricity - Bulk Supply
+6-200-10-11-000 → 98%
+Amount (ZAR)
+R 248 350,42
+Service Provider
+City Power (Pty) Ltd
+Billing Period / Month
+April 2026
+Description
+Electricity Services - April 2026
+Refer Back
+Q Escalate
+6
+Internal
+Control QC
+Received Date
+02/05/2026
+Days Remaining
+22 days
+Service Provider
+City Power (Pty) Ltd
+•
+• Thabo
+Director
+Finance
+Accounting
+LOCKED for Internal Control
+( Comment
+
+--- image29.png ---
+Archival Management
+Internal Control Workspace
+Internal Control
+Directorate
+Search
+Dashboard
+7 Filter
+88
+Compliance Reviews
+Batch
+Archival Management
+Batch 001
+8 Profile
+Batch 002
+Batch 003
+Batch 004
+Show
+1 v of 102 results
+Logout
+Status +
+Ready for Archive
+Archived
+Ready for Archive
+Archived
+Thabo
+Internal Control
+I, Download ZIP
+₺ Download PDF
+Activity
+View
+View
+View
+View
+1 2 3.
+11 >
+
+--- image30.png ---
+Profile
+Internal Control Workspace
+Internal Control
+Directorate
+88
+Dashboard
+Compliance Reviews
+Archival Management
+Profile
+Thabo Mokoena
+Internal Control • Public Works Directorate
+Account information
+Full name
+Thabo Mokoena
+Email
+t.mokoena@gov.za
+Directorate
+Public Works
+Employee ID
+PG-44-2098
+Phone
++27 82 555 0184
+Office
+Provincial Legislature Building
+Notification preferences
+New reviews assigned
+When a new review is received
+Daily digest
+Morning summary of pending and overdue items
+In-app:
+Overdue items
+Items that breached the stage SLA
+Escalation activity
+When items in your scope are escalated
+In-app:
+Logout
+Email:
+Email: CO
+SMS:
+SMS:
+@ Menbo
+Internal Control
+Role & permissions
+Internal Control
+• View full payment batches
+• View all supporting documents
+• View payment vault
+• Access batches via authenticated link
+• Perform quality/compliance review
+• Apply digital verification stamp
+• Approve quality check
+• Refer batches back with comments
+• View audit trail
+• Download completed archival packages
+Permissions are derived from Active Directory
+group SUNDRY_INTERNAL_CONTROL_PW.
+Digital QC Stamp
+User Name
+Thabo Mokoena
+Date
+01/06/2026 (30 days)
+Employee Number
+PG-44-2098
+Time
+10:56 am
+•* Re-authenticate via AD
+Stamp is bound to your Active Directory identity and stamped with timestamp on
+each approval.
+
+--- image31.png ---
+Dashboard
+Financial Department Workspace
+Awaiting Approval
+Finance Directorate
+88
+Dashboard
+Review Payments
+& Profile
+Nearing Deadline
+8
+View Payment Forms
+INV-2025-04822
+Konica Minolta
+Director General Offices
+1 hour left
+3
+INV-2025-04812
+City Power
+Director General Offices
+View Proof of Payments
+INV-2025-04822
+Konica Minolta
+Director General Offices
+Recent activity
+Last 24 hours
+INV-2025-04812
+In progress
+City Power (Pty) Ltd
+INV-2025-04809
+In progress
+Rand Water
+INV-2025-04812|
+Overdue
+Telkom SA SOC
+1 hour left
+INV-2025-04812
+City Power
+Director General Offices
+Logout
+4 hours left
+4 hours left
+Completed
+7
+INV-2025-04809
+Rand Water
+Municipal Annex - Block C
+INV-2025-04809
+Rand Water
+Municipal Annex - Block C
+7 hours left
+7 hours left
+Thabo
+Financial Administrator
+Overdue
+2
+INV-2025-04787|
+Bidvest Facilities
+Director General Offices
+18 hours left
+INV-2025-04787|
+Bidvest Facilities
+Director General Offices
+18 hours left
+R 248 350,42
+R 87 421,10
+R 14 88255
+
+--- image32.png ---
+Reviews
+Financial Department Workspace
+Finance Directorate
+88
+Dashboard
+Review Payments
+Profile
+Search
+All • 6
+Pending review • 7
+INV-2025-04812 In progress
+7 Filter
+Over Deadline • 3
+City Power (Pty) Ltd
+Provincial Legislature Building • April 2026 • 24 days ago
+SLA - 1h left
+PFMA Deadline Approaching
+Within Deadline • 2
+R 248 350,42
+PROVINCIAL
+Score: 9/10
+Director Approval: 05/04/2026
+INV-2025-04798 Overdue
+Telkom SA SOC
+Provincial Legislature Building • April 2026 • 31 days ago
+SLA - 8h over
+Over PFMA Deadline
+A Missing supporting docs
+A Low Al confidence
+R 14 882,55
+PROVINCIAL
+Score: 7/10
+Director Approval: 15/04/2026
+A SLA breached
+INV-2025-04770 Completed
+Eskom Holdings
+Regional Depot - March 2026 • 29 days ago
+SLA - Oh left
+PEMA Deadline Approaching
+R1204 988,30
+NATIONAL
+Score: 10/10
+Director Approval: 16/04/2026
+Logout
+INV-2025-04809 In progress
+Rand Water
+Municipal Annex - Block C • April 2026 • 15 days ago
+SLA - 8h left ) (Within PFMA Deadline
+INV-2025-04787 In progress
+Bidvest Facilities
+Director General Offices • March 2026 • 10 days ago
+SLA - 18h left ) (Within PFMA Deadline
+A Missing supporting docs
+INV-2025-04822 In progress
+Konica Minolta
+Director General Offices • May 2026 • 6 days ago
+SLA - 7h left ) (Within PFMA Deadline
+• Mandao
+Financial Administrator
+R 87 421,10
+PROVINCIAL
+Score: 8/10
+Director Approval: 05/05/2026
+R 332 010,00
+PROVINCIAL
+Score: 9/10
+Director Approval: 26/03/2026
+R 28 410,75
+Score: 10/10
+Director Approval: 23/05/2026
+
+--- image33.png ---
+INV-2025-04812
+Financial Department Workspace
+Finance Directorate
+88
+Dashboard
+Compliance Reviews
+Archival Management
+Profile
+Logout
+• —
+• -
+-
+Uploaded by
+Supervisor
+Admin Clerk
+Verification
+Supervisor
+Verification
+Deputy Director
+Review
+Director
+Approval
+Documents
+All required documents must be uploaded.
+LOCKED for Internal Control
+Batch Summary
+Invoice - City Power (Apr 2026) • View
+Uploaded
+Batch Report - Apr 2026 • View
+Uploaded
+Sundry Payment Form • View
+Uploaded
+Calculation Sheet • View
+Uploaded
+Municipal Services Certificate • View
+Uploaded
+Exemption Memorandum (CFO) • View
+Uploaded
+Supporting Document 1 (Optional) • View
+Uploaded
+Supporting Document 2 (Optional) • View
+Uploaded
+*Required documents
+All documents uploaded
+Extracted Data LOCKED for Internal Control
+Invoice Number
+9001234567
+Invoice Date
+30/04/2026
+Account Number
+1234567890
+Property / Building
+Provincial Legislature Building
+V Approve QC
+Batch ID
+INV-2025-04812
+SLA Due Date
+01/06/2026 (30 days)
+Total Amount
+R 248 350.42
+Al Confidence Score
+9/10
+High confidence
+Low Confidence Fields:
+None
+Al Suggested Allocation:
+Electricity - Bulk Supply
+6-200-10-11-000 → 98%
+Amount (ZAR)
+R 248 350,42
+Service Provider
+City Power (Pty) Ltd
+Billing Period / Month
+April 2026
+Description
+Electricity Services - April 2026
+Refer Back
+Q Escalate
+6
+Internal
+Control QC
+Received Date
+02/05/2026
+Days Remaining
+22 days
+Service Provider
+City Power (Pty) Ltd
+Thabo
+Financial Administrator
+Finance
+Accounting
+LOCKED for Internal Control
+( Comment
+
+--- image34.png ---
+INV-2025-04812
+Financial Department Workspace
+Thabo
+Financial Administrator
+Finance Directorate
+88
+Dashboard
+Review Payments
+& Profile
+Uploaded by
+Supervisor
+- - -
+Admin Clerk
+Verification
+Supervisor
+Verification
+Deputy Director
+Review
+Director
+Approval
+Internal
+Control QC
+Finance
+Accounting
+QC Findings Panel
+Digital QC Stamp
+User Name
+Thabo Mokoena
+Date
+01/06/2026 (30 days)
+Employee Number
+PG-44-2098
+Time
+10:56 am
+Stamp is bound to your Active Directory identity and stamped with timestamp on each approval.
+Signature History
+| Supervisor
+| Signed
+| Deputy Director
+Signed
+| Director
+Signed • Batch Locked
+Audit History
+5/22/2026, 9:37:39 AM - clerk|
+Al extraction completed • 2 hours spent
+Confidence 94%
+5/22/2026, 9:37:39 AM - clerk
+Case created from invoice email • 1.5 hours spent
+Start Payment Form
+OPEN FORM
+Logout
+V Approve QC
+Refer Back
+Q Escalate
+# Comment
+
+--- image35.png ---
+INV-2025-04812
+Financial Department Workspace
+Finance Directorate
+Submit Payment Form
+88
+Dashboard
+Review Payments
+8 Profile
+DLRRD Payment Form - Sundry Payment Advice
+D
+Payment Method
+Select
+• EBT
+• DT
+• ст
+Banking Details of Payee (NB by Directorate Requesting Payment)
+Name of Bank
+Enter
+Branch Code
+Enter
+Confirmed By
+Enter
+Signature of Director
+Payment Method
+Description
+Enter
+Responsibility
+Enter
+Project
+Enter
+Regional Identifier
+Enter
+Infrastructure
+Enter
+Matching Field 2
+Enter
+Allocation Amount (ZAR)
+R
+Logout
+• Manda
+Financial Administrator
+Account Number
+Enter
+Date
+Objective
+Enter
+Fund
+Enter
+Assets
+Enter
+Item
+Enter
+Matching Field 1
+Enter
+Matching Field 3
+Enter
+
+--- image36.png ---
+INV-2025-04812
+Financial Department Workspace
+15 Mado
+Financial Administrator
+Finance Directorate
+Submit Payment Form
+DLRRD Payment Form - Sundry Payment Advice
+88฿
+Dashboard
+Review Payments
+8 Profile
+F Compiled By
+Print Name
+Enter
+Rank
+Enter
+Signature
+Date
+G
+Verified By
+Print Name
+Enter
+Rank
+Enter
+Signature
+Date
+H
+Approved By
+Print Name
+Enter
+Rank
+Enter
+Signature
+Date
+Before Committing Expenditure, Officials must ensure that they adhere to Section 45 of the PFMA
+Logout
+
+--- image37.png ---
+INV-2025-04812
+Financial Department Workspace
+Finance Directorate
+Submit Payment Form
+BB Dashboard
+DLRRD Payment Form - Allocation Attachment
+Review Payments
+8 Profile
+General Information
+Functional Area
+Enter
+Invoice Number
+Enter
+Allocation Detail
+Description
+Enter
+Responsibility
+Enter
+Project
+Enter
+Regional Identifier
+Enter
+Infrastructure
+Enter
+Matching Field 2
+Enter
+Allocation Amount (ZAR)
+R
+Logout
+Pandal
+Financial Administrator
+Functional Area Number
+Enter
+Objective
+Enter
+Fund
+Enter
+Assets
+Enter
+Item
+Enter
+Matching Field 1
+Enter
+Matching Field 3
+Enter
+Select
+• Debit
+• Credit
+
+--- image38.png ---
+INV-2025-04812
+Financial Department Workspace
+Finance Directorate
+88
+Dashboard
+Review Payments
+Profile
+Submit Payment Form
+DLRRD Payment Form - Allocation Attachment
+Allocation Detail
+Description
+Enter
+Responsibility
+Enter
+Project
+Enter
+Regional Identifier
+Enter
+Infrastructure
+Enter
+Matching Field 2
+Enter
+Allocation Amount (ZAR)
+R
+D
+Allocation Detail
+Description
+Enter
+Responsibility
+Enter
+Project
+Enter
+Regional Identifier
+Enter
+Infrastructure
+Enter
+Matching Field 2
+Enter
+Allocation Amount (ZAR)
+R
+L→
+Logout
+0 Tandoo
+Financial Administrator
+Objective
+Enter
+Fund
+Enter
+Assets
+Enter
+Item
+Enter
+Matching Field 1
+Enter
+Matching Field 3
+Enter
+Select
+• Debit O
+Credit
+Objective
+Enter
+Fund
+Enter
+Assets
+Enter
+Item
+Enter
+Matching Field 1
+Enter
+Matching Field 3
+Enter
+Select
+• Debit
+Credit
+
+--- image39.png ---
+Finance Directorate
+88
+Dashboard
+Review Payments
+Profile
+INV-2025-04812
+Financial Department Workspace
+Submit Payment Form
+DLRRD Payment Form - Allocation Attachment
+E
+Allocation Detail
+Description
+Enter
+Responsibility
+Enter
+Project
+Enter
+Regional Identifier
+Enter
+Infrastructure
+Enter
+Matching Field 2
+Enter
+Allocation Amount (ZAR)
+R
+F
+Compiled By
+Print Name
+Enter
+Signature
+G
+Checked and Verified By
+Print Name
+Enter
+Signature
+L→
+Logout
+Objective
+Enter
+Fund
+Enter
+Assets
+Enter
+Item
+Enter
+Matching Field 1
+Enter
+Matching Field 3
+Enter
+Select
+• Debit O
+Credit
+Rank
+Enter
+Date
+Rank
+Enter
+Date
+0 Tandoo
+Financial Administrator
++ Add Allocation Detail Section
+
+--- image40.png ---
+INV-2025-04812
+Financial Department Workspace
+• Mandal
+Financial Administrator
+Finance Directorate
+Submit Payment Form
+88
+Dashboard
+DLRRD Payment Form - Allocation Attachment
+Review Payments
+Profile
+H Expenditure Authorized By
+Print Name
+Enter
+Rank
+Enter
+Signature
+Date
+Logout
+Approve QC
+_ Refer Back
+A Escalate
+• Comment
+
+--- image41.png ---
+Profile
+Financial Department Workspace
+Finance Directorate
+88
+Dashboard
+Review Payments
+Profile
+Thabo Mokoena
+Financial Administrator • Public Works Directorate
+Account information
+Full name
+Thabo Mokoena
+Email
+t.mokoena@gov.za
+Directorate
+Public Works
+Employee ID
+PG-44-2098
+Phone
++27 82 555 0184
+Office
+Provincial Legislature Building
+Notification preferences
+New reviews assigned
+When a new review is received
+Daily digest
+Morning summary of pending and overdue items
+In-app:
+Overdue items
+Items that breached the stage SLA
+Escalation activity
+When items in your scope are escalated
+In-app:
+Logout
+Email:
+Email: CO
+SMS:
+SMS:
+• Mandal
+Financial Administrator
+Role & permissions
+Financial Administrator
+• View full payment batches
+• View all supporting documents
+• View payment vault
+• Access batches via authenticated link
+• Perform quality/compliance review
+• Apply digital verification stamp
+• Approve quality check
+• Refer batches back with comments
+• View audit trail
+• Download completed archival packages
+Permissions are derived from Active Directory
+group SUNDRY_FINANCIAL_ADMINISTRATOR_PW.
+Digital QC Stamp
+User Name
+Thabo Mokoena
+Date
+01/06/2026 (30 days)
+Employee Number
+PG-44-2098
+Time
+10:56 am
+•* Re-authenticate via AD
+Stamp is bound to your Active Directory identity and stamped with timestamp on
+each approval.
+
+--- image42.png ---
+Facilities Management
+Dashboard
+Review Payments
+9 Profile
+Dashboard
+System health and administration activity overview
+Active Users
+8
+Failed Notifications
+8
+Create User
+Assign Role
+Recent User Changes
+M. Nkosi
+2025-06-04
+14:22
+T. Mokoena
+Role Assigned: Admin Clerk
+Active Acting Assignments
+Q Search
+#
+Role
+Original
+Deputy Director
+N. Cele
+2
+Internal Control
+J. Pretorius
+Deputy Director
+N. Cele
+Internal Control
+J. Pretorius
+Show
+1 v of 102 results
+Logout
+Thabo
+System Administrator
+Overdue Workflow Items
+Disabled Users
+3
+Integrations Online
+3
+Create Acting Appointment
+M. Nkosi
+T. Mokoena
+Role Assigned: Admin Clerk
+? Filter
+• Filter
+Acting
+Start
+B. Mthembu
+2025-05-20
+K. Sithole
+2025-06-01
+B. Mthembu
+2025-05-20
+K. Sithole
+2025-06-01
+3
+Acting Appointments
+7
+2
+Configure Timelines
+2025-06-04
+14:22
+Filter
+View Audit Logs
+M. Nkosi
+2025-06-04
+14:22
+T. Mokoena
+Role Assigned: Admin Clerk
+End
+2025-06-20
+2025-06-14
+2025-06-20
+2025-06-14
+11
+>
+Escalation Alerts
+Q
+Search
+#
+Workflow Stage
+Batch Count
+Deputy Director Review
+4
+2
+Internal Control
+2
+Finance Accounting
+1
+Internal Control
+Show
+1 v of 102 results
+1
+2
+M. Nkosi
+2025-06-04
+14:22
+T. Mokoena
+Role Assigned: Admin Clerk
+Filter
+Days Overdue
+5 days
+3 days
+6 days
+2 days
+11
+
+--- image43.png ---
+MTN
+
+--- image44.png ---
+land reform &
+rural development
+Department:
+Land Reform and Rural Development
+REPUBLIC OF SOUTH AFRICA
