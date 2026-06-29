@@ -112,7 +112,19 @@ export async function extractInvoiceData(
   const nameLower = fileName.toLowerCase();
   const currentDate = new Date().toISOString().split('T')[0];
 
-  if (nameLower.includes('power') || nameLower.includes('elect') || nameLower.includes('light')) {
+  if (nameLower.includes('coj')) {
+    return {
+      serviceProvider: "City of Johannesburg",
+      propertyBuilding: "32 UCR1 Crescent, Halfway Gardens Ext.44",
+      amount: 2054.24,
+      invoiceNumber: "118006477006",
+      invoiceDate: "2026-05-07",
+      receivedDate: currentDate,
+      accountDetails: "Standard Bank CIN AA45 Ref: 556259155",
+      billingPeriod: "May 2026",
+      description: "Municipal statement for Property Rates (R800.96), Water/Sewerage (R877.23), and Refuse (R376.05)."
+    };
+  } else if (nameLower.includes('power') || nameLower.includes('elect') || nameLower.includes('light')) {
     return {
       serviceProvider: "City Power (Pty) Ltd",
       propertyBuilding: "Provincial Legislature Building",

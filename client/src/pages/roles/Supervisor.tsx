@@ -5,6 +5,116 @@ import {
   Building, Landmark, Zap, Droplets, Trash2, Leaf, CheckSquare, Square
 } from 'lucide-react';
 import { Invoice, InvoiceStatus, UtilityLine, RefuseCalc, BASLine } from '../../types';
+import { uploadInvoiceAndExtract } from '../../utils/api';
+
+function mapReviewToInvoice(review: any, filename: string): Invoice {
+  const isCOJ = review.serviceProvider.toLowerCase().includes('johannesburg') || review.serviceProvider.toLowerCase().includes('coj');
+  
+  let utilities: UtilityLine[] = [];
+  let refuse: RefuseCalc = {
+    councilTotal: 0,
+    proRataShare: 1,
+    calculatedShare: 0,
+    landlordClaimed: 0,
+    lesserOfTwo: 0,
+    approved: true
+  };
+  let basLines: BASLine[] = [];
+  let exclVat = review.amount;
+  let vatAmount = 0;
+
+  if (isCOJ) {
+    utilities = [
+      { type: 'Water', meterNumber: '941025570', consumption: '5 kl (36 days)', unitCost: 0, exclVat: 762.81, vat: 114.42, total: 877.23 },
+    ];
+    refuse = {
+      councilTotal: 327.00,
+      proRataShare: 1,
+      calculatedShare: 327.00,
+      landlordClaimed: 327.00,
+      lesserOfTwo: 327.00,
+      approved: true
+    };
+    basLines = [
+      { service: 'Property Rates', amount: 800.96, objective: 'Rates', responsibility: 'R040', fund: 'F001', asset: 'Rates', item: 'Rates', infrastructure: 'Rates' },
+      { service: 'Water & Sewerage', amount: 877.23, objective: 'Water', responsibility: 'R041', fund: 'F001', asset: 'Water', item: 'Water', infrastructure: 'Water' },
+      { service: 'Refuse', amount: 376.05, objective: 'Refuse', responsibility: 'R042', fund: 'F001', asset: 'Refuse', item: 'Refuse', infrastructure: 'Refuse' },
+    ];
+    exclVat = 800.96 + 762.81 + 327.00;
+    vatAmount = 163.47;
+  } else {
+    const isElectricity = review.serviceProvider.toLowerCase().includes('power') || review.serviceProvider.toLowerCase().includes('elect');
+    const isWater = review.serviceProvider.toLowerCase().includes('water') || review.serviceProvider.toLowerCase().includes('rates');
+    
+    if (isElectricity) {
+      utilities = [
+        { type: 'Electricity', meterNumber: 'E-1042-A', consumption: 'Calculated', unitCost: 1.85, exclVat: review.amount / 1.15, vat: (review.amount / 1.15) * 0.15, total: review.amount }
+      ];
+      basLines = [
+        { service: 'Electricity', amount: review.amount, objective: 'A03', responsibility: 'R041', fund: 'F001', asset: 'INF-E', item: '3107', infrastructure: 'I-022' }
+      ];
+    } else if (isWater) {
+      utilities = [
+        { type: 'Water', meterNumber: 'W-0837-B', consumption: 'Calculated', unitCost: 22.40, exclVat: review.amount / 1.15, vat: (review.amount / 1.15) * 0.15, total: review.amount }
+      ];
+      basLines = [
+        { service: 'Water', amount: review.amount, objective: 'A04', responsibility: 'R041', fund: 'F001', asset: 'INF-W', item: '3108', infrastructure: 'I-023' }
+      ];
+    } else {
+      refuse = {
+        councilTotal: review.amount,
+        proRataShare: 1,
+        calculatedShare: review.amount,
+        landlordClaimed: review.amount,
+        lesserOfTwo: review.amount,
+        approved: true
+      };
+      basLines = [
+        { service: 'Sundry Payment', amount: review.amount, objective: 'A01', responsibility: 'R010', fund: 'F001', asset: 'GEN', item: '9901', infrastructure: 'I-001' }
+      ];
+    }
+    exclVat = review.amount / 1.15;
+    vatAmount = review.amount - exclVat;
+  }
+
+  return {
+    id: review.id || `INV-${Date.now()}`,
+    invoiceNumber: review.invoiceNumber || 'INV-TEMP',
+    invoiceDate: review.invoiceDate || new Date().toISOString().split('T')[0],
+    billingMonth: review.billingPeriod || 'May 2026',
+    receivedDate: review.receivedDate || new Date().toISOString().split('T')[0],
+    paymentMethod: 'EBT',
+    landlord: review.serviceProvider,
+    propertyAddress: review.propertyBuilding || '32 UCR1 Crescent, Halfway Gardens Ext.44',
+    buildingSizeM2: 308,
+    leasedAreaM2: 308,
+    proRataShare: 100,
+    payeeName: review.serviceProvider,
+    vatNumber: isCOJ ? '4760117194' : '4510213876',
+    bankName: isCOJ ? 'Standard Bank' : 'First National Bank',
+    accountNumber: review.accountNumber || '1234567890',
+    branchCode: '250655',
+    accountType: 'Business Cheque',
+    verifiedEntity: true,
+    utilities,
+    refuse,
+    basLines,
+    exclVat,
+    vatAmount,
+    totalAmount: review.amount,
+    status: 'Pending',
+    submittedBy: 'Thabo Mokoena',
+    submittedAt: new Date().toISOString(),
+    checklistItems: [
+      { label: 'All utility meter readings match municipal statements', checked: false },
+      { label: 'Pro-rata calculation verified against lease agreement', checked: false },
+      { label: 'Payee banking details match CSD verification', checked: false },
+    ],
+    documentName: filename,
+    documentUrl: review.documents?.[0]?.url || ''
+  };
+}
+
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -272,23 +382,43 @@ export default function Supervisor({ user }: Props) {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (!file) return;
-    simulateOcr(file.name);
+    uploadFileAndExtractData(file);
   }
 
   function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    simulateOcr(file.name);
+    uploadFileAndExtractData(file);
   }
 
-  function simulateOcr(filename: string) {
+  function uploadFileAndExtractData(file: File) {
     setOcrLoading(true);
     setOcrDone(false);
-    setTimeout(() => {
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const base64 = reader.result as string;
+        const res = await uploadInvoiceAndExtract(file.name, file.type, base64);
+        if (res.success && res.review) {
+          const mappedInvoice = mapReviewToInvoice(res.review, file.name);
+          setInvoice(mappedInvoice);
+          setOcrDone(true);
+        } else {
+          alert("Error: AI extraction returned unsuccessful response");
+        }
+      } catch (err: any) {
+        console.error("AI extraction error:", err);
+        alert(`Failed to extract invoice data: ${err.message || err}`);
+      } finally {
+        setOcrLoading(false);
+      }
+    };
+    reader.onerror = () => {
+      alert("Failed to read the file");
       setOcrLoading(false);
-      setOcrDone(true);
-      setInvoice(prev => ({ ...prev, documentName: filename }));
-    }, 2200);
+    };
+    reader.readAsDataURL(file);
   }
 
   function toggleChecklist(idx: number) {

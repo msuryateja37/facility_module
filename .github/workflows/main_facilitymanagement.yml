@@ -114,6 +114,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'dlrrd-facility-management'    # ← replace with your Azure App Service name
+          app-name: 'facilitiesmanagement'    # ← replace with your Azure App Service name
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: ./deploy
