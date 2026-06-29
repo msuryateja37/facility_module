@@ -1,16 +1,16 @@
-import { BlobServiceClient } from '@azure/storage-blob';
+import { BlobServiceClient, BlobSASPermissions } from '@azure/storage-blob';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
-const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || 'facility-management-vault';
 
 export async function uploadBlob(
   fileName: string, 
   fileBuffer: Buffer, 
   mimeType: string
 ): Promise<string> {
+  const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+  const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || 'facility-management-vault';
+
   // If connection string is missing, log it and return local static file path as fallback
   if (!connectionString) {
     console.warn("Azure Blob: AZURE_STORAGE_CONNECTION_STRING is missing. Falling back to local disk URL.");
@@ -22,10 +22,8 @@ export async function uploadBlob(
     const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
-    // Create container if it does not exist with public access (blob) to serve files directly
-    await containerClient.createIfNotExists({
-      access: 'blob'
-    });
+    // Create container private by default (no anonymous access needed)
+    await containerClient.createIfNotExists();
 
     // Make sure we store invoices in 'invoice' folder in the blob
     const blobName = `invoice/${fileName}`;
@@ -38,8 +36,14 @@ export async function uploadBlob(
       }
     });
 
-    console.log(`Azure Blob: Successfully uploaded file. Public URL: ${blockBlobClient.url}`);
-    return blockBlobClient.url;
+    // Generate a secure SAS URL valid for 24 hours to view private blob directly in browser
+    const sasUrl = await blockBlobClient.generateSasUrl({
+      permissions: BlobSASPermissions.parse("r"), // read only
+      expiresOn: new Date(new Date().valueOf() + 24 * 3600 * 1000) // 24 hours
+    });
+
+    console.log(`Azure Blob: Successfully uploaded file. SAS URL: ${sasUrl}`);
+    return sasUrl;
   } catch (err) {
     console.error("Azure Blob: Failed to upload file to Blob Storage. Falling back to local disk URL.", err);
     return `/uploads/${fileName}`;
