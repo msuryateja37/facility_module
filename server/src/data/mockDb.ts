@@ -316,7 +316,8 @@ class MockDb {
   }
 
   createReview(review: Omit<Review, 'id' | 'createdAt' | 'updatedAt' | 'daysRemaining'>) {
-    const id = `INV-2025-0${this.data.reviews.length + 4823}`;
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+    const id = `INV-2025-${randomSuffix}`;
     const newReview: Review = {
       ...review,
       id,

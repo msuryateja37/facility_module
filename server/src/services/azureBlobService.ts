@@ -8,13 +8,23 @@ export async function uploadBlob(
   fileBuffer: Buffer, 
   mimeType: string
 ): Promise<string> {
-  const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+  let connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
   const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || 'facility-management-vault';
 
   // If connection string is missing, log it and return local static file path as fallback
   if (!connectionString) {
     console.warn("Azure Blob: AZURE_STORAGE_CONNECTION_STRING is missing. Falling back to local disk URL.");
     return `/uploads/${fileName}`;
+  }
+
+  // Automatically repair connection string if EndpointSuffix is missing
+  if (!connectionString.includes('EndpointSuffix=')) {
+    connectionString = connectionString.trim();
+    if (!connectionString.endsWith(';')) {
+      connectionString += ';';
+    }
+    connectionString += 'EndpointSuffix=core.windows.net';
+    console.log("Azure Blob: Appended missing EndpointSuffix to connection string.");
   }
 
   try {

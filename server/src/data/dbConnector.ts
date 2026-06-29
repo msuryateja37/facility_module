@@ -240,8 +240,8 @@ export async function getReviewById(id: string): Promise<any> {
 }
 
 export async function createReview(review: any): Promise<any> {
-  const reviews = await getReviews();
-  const id = review.id || `INV-2025-0${reviews.length + 4810}`;
+  const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+  const id = review.id || `INV-2025-${randomSuffix}`;
   const now = new Date().toISOString();
   const newReview = {
     id,
