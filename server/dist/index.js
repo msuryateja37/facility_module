@@ -50,7 +50,9 @@ const aiRoutes_1 = __importDefault(require("./routes/aiRoutes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5500;
 // Ensure uploads folder exists in base server directory
-const uploadsDir = path_1.default.join(__dirname, '../uploads');
+const uploadsDir = process.env.HOME
+    ? path_1.default.join(process.env.HOME, 'uploads')
+    : path_1.default.join(__dirname, '../uploads');
 if (!fs_1.default.existsSync(uploadsDir)) {
     fs_1.default.mkdirSync(uploadsDir, { recursive: true });
 }

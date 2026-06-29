@@ -6,7 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.db = void 0;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const DB_FILE = path_1.default.join(__dirname, 'db.json');
+let DB_FILE = path_1.default.join(__dirname, 'db.json');
+if (process.env.HOME) {
+    DB_FILE = path_1.default.join(process.env.HOME, 'db.json');
+}
 const DEFAULT_DB = {
     reviews: [
         {
