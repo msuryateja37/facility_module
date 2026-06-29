@@ -240,7 +240,8 @@ class MockDb {
         return this.data.reviews.find(r => r.id === id);
     }
     createReview(review) {
-        const id = `INV-2025-0${this.data.reviews.length + 4823}`;
+        const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+        const id = `INV-2025-${randomSuffix}`;
         const newReview = {
             ...review,
             id,

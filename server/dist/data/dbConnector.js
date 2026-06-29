@@ -247,8 +247,8 @@ async function getReviewById(id) {
     return mockDb_1.db.getReviewById(id);
 }
 async function createReview(review) {
-    const reviews = await getReviews();
-    const id = review.id || `INV-2025-0${reviews.length + 4810}`;
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+    const id = review.id || `INV-2025-${randomSuffix}`;
     const now = new Date().toISOString();
     const newReview = {
         id,
