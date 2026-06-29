@@ -84,7 +84,7 @@ jobs:
 
           # Install production server deps inside deploy/
           cd deploy
-          npm install cors dotenv express morgan mssql mime-db --legacy-peer-deps --omit=dev
+          npm install cors dotenv express morgan mssql mime-db @azure/storage-blob --legacy-peer-deps --omit=dev
 
       # ── Upload artifact ───────────────────────────────────────
       - name: Upload Build Artifacts
