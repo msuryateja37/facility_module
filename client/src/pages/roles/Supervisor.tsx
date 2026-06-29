@@ -5,7 +5,8 @@ import {
   Building, Landmark, Zap, Droplets, Trash2, Leaf, CheckSquare, Square
 } from 'lucide-react';
 import { Invoice, InvoiceStatus, UtilityLine, RefuseCalc, BASLine } from '../../types';
-import { uploadInvoiceAndExtract } from '../../utils/api';
+import { useQuery } from '@tanstack/react-query';
+import { uploadInvoiceAndExtract, fetchReviews, updateReview } from '../../utils/api';
 
 function mapReviewToInvoice(review: any, filename: string): Invoice {
   const isCOJ = review.serviceProvider.toLowerCase().includes('johannesburg') || review.serviceProvider.toLowerCase().includes('coj');
@@ -205,7 +206,7 @@ const STEPS = ['Identification', 'Utilities', 'BAS Allocation', 'Sign-off'];
 
 function StepBar({ step }: { step: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: '2rem' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: '2.5rem', padding: '1rem', backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: 'var(--shadow-sm)' }}>
       {STEPS.map((label, i) => {
         const done    = i < step;
         const active  = i === step;
@@ -214,28 +215,40 @@ function StepBar({ step }: { step: number }) {
           <React.Fragment key={label}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
               <div style={{
-                width: '36px', height: '36px', borderRadius: '50%',
+                width: '40px', height: '40px', borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 700, fontSize: '0.8rem',
-                backgroundColor: done ? '#0e4d41' : active ? '#d8c14c' : '#e2e8f0',
+                fontWeight: 700, fontSize: '0.85rem',
+                background: done 
+                  ? 'linear-gradient(135deg, #0e4d41, #1e6d60)' 
+                  : active 
+                    ? 'linear-gradient(135deg, #fef08a, #d8c14c)' 
+                    : '#f1f5f9',
                 color: done ? 'white' : active ? '#0e4d41' : '#94a3b8',
-                border: active ? '3px solid #0e4d41' : '3px solid transparent',
-                boxShadow: active ? '0 0 0 4px rgba(14,77,65,0.15)' : 'none',
-                transition: 'all 0.3s ease',
+                border: active ? '2px solid #0e4d41' : done ? 'none' : '2px solid #e2e8f0',
+                boxShadow: active 
+                  ? '0 4px 14px rgba(216, 193, 76, 0.4), 0 0 0 4px rgba(14,77,65,0.15)' 
+                  : done 
+                    ? '0 4px 10px rgba(14, 77, 65, 0.2)' 
+                    : 'none',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
               }}>
-                {done ? <CheckCircle size={18} /> : i + 1}
+                {done ? <CheckCircle size={20} /> : i + 1}
               </div>
               <span style={{
-                marginTop: '0.375rem', fontSize: '0.7rem', fontWeight: active ? 700 : 500,
-                color: active ? '#0e4d41' : done ? '#0e4d41' : '#94a3b8',
+                marginTop: '0.5rem', fontSize: '0.75rem', fontWeight: active ? 700 : 500,
+                color: active ? '#0e4d41' : done ? '#0e4d41' : '#64748b',
                 textAlign: 'center', whiteSpace: 'nowrap'
               }}>{label}</span>
             </div>
             {i < STEPS.length - 1 && (
               <div style={{
-                flex: 2, height: '3px', marginBottom: '1.1rem',
-                backgroundColor: done ? '#0e4d41' : '#e2e8f0',
-                transition: 'background-color 0.4s ease'
+                flex: 2, height: '4px', marginBottom: '1.25rem', borderRadius: '2px',
+                background: done 
+                  ? 'linear-gradient(90deg, #0e4d41, #1e6d60)' 
+                  : active 
+                    ? 'linear-gradient(90deg, #d8c14c, #e2e8f0)' 
+                    : '#e2e8f0',
+                transition: 'all 0.4s ease'
               }} />
             )}
           </React.Fragment>
@@ -330,12 +343,15 @@ interface Props {
 }
 
 export default function Supervisor({ user }: Props) {
-  const [invoices, setInvoices] = useState<Invoice[]>(() => {
-    // Seed with demo data
-    const demo1 = generateMockInvoice({ id: 'INV-001', invoiceNumber: 'INV-2026-0891', billingMonth: 'May 2026', status: 'In Review', submittedAt: '2026-06-10T08:00:00Z', landlord: 'Seriti Office Parks' });
-    const demo2 = generateMockInvoice({ id: 'INV-002', invoiceNumber: 'INV-2026-1007', billingMonth: 'May 2026', status: 'Approved',   submittedAt: '2026-06-12T10:30:00Z', landlord: 'Blue Dawn Properties' });
-    return [demo1, demo2];
+  const { data: reviewsData, refetch: refetchReviews } = useQuery<any[]>({
+    queryKey: ['reviews'],
+    queryFn: fetchReviews
   });
+
+  const invoices: Invoice[] = React.useMemo(() => {
+    if (!reviewsData) return [];
+    return reviewsData.map(r => mapReviewToInvoice(r, r.documents?.[0]?.name || 'Invoice'));
+  }, [reviewsData]);
 
   // List view state
   const [search, setSearch] = useState('');
@@ -430,14 +446,27 @@ export default function Supervisor({ user }: Props) {
     }));
   }
 
-  function submitInvoice() {
-    const finalInvoice: Invoice = { ...invoice, status: 'In Review', submittedAt: new Date().toISOString(), submittedBy: user?.firstName ? `${user.firstName} ${user.lastName}` : 'Thabo Mokoena' };
-    setInvoices(prev => [finalInvoice, ...prev]);
-    setSubmitted(true);
-    setTimeout(() => {
-      setWizardMode('list');
-      setSubmitted(false);
-    }, 1800);
+  async function submitInvoice() {
+    try {
+      const reviewUpdates = {
+        status: 'In Review',
+        supervisorComments: `Signed off by ${user?.firstName || 'Supervisor'} on ${new Date().toLocaleDateString()}`,
+        paymentForm: {
+          signature: invoice.signature,
+          checklist: invoice.checklistItems
+        }
+      };
+      await updateReview(invoice.id, reviewUpdates);
+      await refetchReviews();
+      setSubmitted(true);
+      setTimeout(() => {
+        setWizardMode('list');
+        setSubmitted(false);
+      }, 1800);
+    } catch (err: any) {
+      console.error(err);
+      alert(`Failed to submit invoice to database: ${err.message || err}`);
+    }
   }
 
   // ── Render ───────────────────────────────────────────────────
@@ -581,35 +610,43 @@ function Step1({ invoice, ocrLoading, ocrDone, onFileDrop, onFileInput, onNext }
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
       {/* Left: Upload */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div className="card" style={{ margin: 0 }}>
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Document Upload</h3>
+        <div className="card" style={{ margin: 0, padding: '2rem', border: '1px solid #e2e8f0', boxShadow: 'var(--shadow-md)', transition: 'all 0.3s ease' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0e4d41', marginBottom: '1.25rem' }}>Document Upload</h3>
           <div
             onDragOver={e => e.preventDefault()} onDrop={onFileDrop}
             onClick={() => fileRef.current?.click()}
             style={{
-              border: '2px dashed #0e4d41', borderRadius: '12px', padding: '2.5rem 1.5rem',
-              textAlign: 'center', cursor: 'pointer', backgroundColor: '#f0fdf4',
-              transition: 'background-color 0.2s ease'
+              border: '2.5px dashed #0e4d41', borderRadius: '16px', padding: '3.5rem 2rem',
+              textAlign: 'center', cursor: 'pointer', 
+              background: 'linear-gradient(135deg, #f0fdf4, #e6f7f4)',
+              boxShadow: 'inset 0 2px 4px rgba(14, 77, 65, 0.03)',
+              transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              animation: ocrLoading ? 'pulseBorder 2s infinite' : 'none'
             }}
+            className="upload-dropzone-box"
           >
             <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={onFileInput} style={{ display: 'none' }} />
             {ocrLoading ? (
               <>
-                <div style={{ width: '36px', height: '36px', border: '3px solid #0e4d41', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
-                <p style={{ color: '#0e4d41', fontWeight: 600, margin: 0 }}>Processing OCR…</p>
-                <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '0.25rem' }}>Extracting invoice data</p>
+                <div style={{ width: '42px', height: '42px', border: '4px solid #0e4d41', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1.25rem' }} />
+                <p style={{ color: '#0e4d41', fontWeight: 800, fontSize: '0.95rem', margin: 0 }}>Analyzing Document via Azure AI…</p>
+                <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '0.35rem' }}>Extracting billing & COA line items</p>
               </>
             ) : ocrDone ? (
               <>
-                <CheckCircle size={40} color="#0e4d41" style={{ marginBottom: '0.75rem' }} />
-                <p style={{ color: '#0e4d41', fontWeight: 700, margin: 0 }}>Document processed</p>
-                <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '0.25rem' }}>{invoice.documentName}</p>
+                <div style={{ width: '54px', height: '54px', borderRadius: '50%', backgroundColor: '#0e4d41', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', boxShadow: '0 4px 12px rgba(14, 77, 65, 0.25)' }}>
+                  <CheckCircle size={32} color="white" />
+                </div>
+                <p style={{ color: '#0e4d41', fontWeight: 800, fontSize: '1rem', margin: 0 }}>Document Processed Successfully</p>
+                <p style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.35rem', fontFamily: 'monospace', wordBreak: 'break-all' }}>{invoice.documentName}</p>
               </>
             ) : (
               <>
-                <Upload size={40} color="#0e4d41" style={{ marginBottom: '0.75rem' }} />
-                <p style={{ color: '#0e4d41', fontWeight: 700, margin: 0 }}>Drag & drop or click to upload</p>
-                <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '0.25rem' }}>PDF, JPG or PNG invoice</p>
+                <div style={{ width: '54px', height: '54px', borderRadius: '50%', backgroundColor: '#e6f7f4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', transition: 'all 0.2s ease' }} className="upload-icon-wrapper">
+                  <Upload size={24} color="#0e4d41" />
+                </div>
+                <p style={{ color: '#0e4d41', fontWeight: 800, fontSize: '0.95rem', margin: 0 }}>Drag & drop invoice or click to upload</p>
+                <p style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.35rem' }}>Supports PDF, JPG, or PNG files up to 20MB</p>
               </>
             )}
           </div>
@@ -905,6 +942,39 @@ function Step3({ invoice, openAccordion, setOpenAccordion, onBack, onNext }: {
   );
 }
 
+function DocumentPreview({ url, title }: { url?: string; title: string }) {
+  if (!url) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '300px', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '2rem', color: '#64748b' }}>
+        <FileText size={48} style={{ marginBottom: '1rem', color: '#94a3b8' }} />
+        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>No document file available</span>
+        <span style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>Upload a bill file in Step 1</span>
+      </div>
+    );
+  }
+
+  const isPdf = url.toLowerCase().includes('.pdf') || url.includes('data:application/pdf');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '500px', backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <FileText size={16} color="#0e4d41" />
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0e4d41' }}>{title}</span>
+        </div>
+        <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#0e4d41', fontWeight: 600, textDecoration: 'underline' }}>Open In New Tab</a>
+      </div>
+      <div style={{ flex: 1, backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        {isPdf ? (
+          <iframe src={url} style={{ width: '100%', height: '100%', minHeight: '500px', border: 'none' }} title="Document PDF Preview" />
+        ) : (
+          <img src={url} style={{ maxWidth: '100%', maxHeight: '520px', objectFit: 'contain', padding: '0.5rem' }} alt="Document Preview" />
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Step 4: Sign-off ──────────────────────────────────────────────────────────
 
 function Step4({ invoice, submitted, onToggle, onSign, onBack, onSubmit }: {
@@ -917,78 +987,88 @@ function Step4({ invoice, submitted, onToggle, onSign, onBack, onSubmit }: {
   const canSubmit  = allChecked && hasSig;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '640px', margin: '0 auto', width: '100%' }}>
-      {/* Checklist */}
-      <div className="card" style={{ margin: 0 }}>
-        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Verification Checklist</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {invoice.checklistItems.map((item, idx) => (
-            <label key={idx} onClick={() => onToggle(idx)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: item.checked ? '#0e4d41' : '#374151', userSelect: 'none' }}>
-              <div style={{
-                width: '22px', height: '22px', borderRadius: '6px', border: `2px solid ${item.checked ? '#0e4d41' : '#cbd5e1'}`,
-                backgroundColor: item.checked ? '#0e4d41' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0, transition: 'all 0.2s ease'
-              }}>
-                {item.checked && <CheckCircle size={14} color="white" />}
+    <div style={{ display: 'grid', gridTemplateColumns: invoice.documentUrl ? '1.2fr 1fr' : '1fr', gap: '1.5rem', width: '100%', maxWidth: invoice.documentUrl ? '1200px' : '640px', margin: '0 auto' }}>
+      {/* Left: Verification form and actions */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Checklist */}
+        <div className="card" style={{ margin: 0 }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Verification Checklist</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {invoice.checklistItems.map((item, idx) => (
+              <label key={idx} onClick={() => onToggle(idx)} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: item.checked ? '#0e4d41' : '#374151', userSelect: 'none' }}>
+                <div style={{
+                  width: '22px', height: '22px', borderRadius: '6px', border: `2px solid ${item.checked ? '#0e4d41' : '#cbd5e1'}`,
+                  backgroundColor: item.checked ? '#0e4d41' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, transition: 'all 0.2s ease'
+                }}>
+                  {item.checked && <CheckCircle size={14} color="white" />}
+                </div>
+                {item.label}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Signature */}
+        <div className="card" style={{ margin: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Pen size={16} color="#0e4d41" />
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0e4d41', margin: 0 }}>Digital Signature</h3>
+          </div>
+          <SignatureCanvas onSave={onSign} />
+        </div>
+
+        {/* Compiled By blocks */}
+        <div className="card" style={{ margin: 0 }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Authorisation Record</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+            {[
+              { role: 'Compiled By', name: invoice.submittedBy, date: new Date().toLocaleDateString('en-ZA') },
+              { role: 'Verified By',   name: '—', date: '—' },
+              { role: 'Approved By',   name: '—', date: '—' },
+            ].map(block => (
+              <div key={block.role} style={{ textAlign: 'center', padding: '0.875rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>{block.role}</div>
+                <div style={{ fontWeight: 700, color: '#0e4d41', fontSize: '0.875rem' }}>{block.name}</div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>{block.date}</div>
               </div>
-              {item.label}
-            </label>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {!canSubmit && (
+          <div style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem 1rem', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a', fontSize: '0.8rem', color: '#92400e' }}>
+            <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+            {!allChecked ? 'Please tick all checklist items.' : 'Please draw your signature.'}
+          </div>
+        )}
+
+        {submitted && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.25rem', backgroundColor: '#d1fae5', borderRadius: '10px', border: '1px solid #6ee7b7', color: '#065f46', fontWeight: 700 }}>
+            <CheckCircle size={20} /> Invoice submitted successfully! Redirecting…
+          </div>
+        )}
+
+        {/* Nav */}
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <button onClick={onBack} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.65rem 1.5rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', color: '#475569' }}>← Back</button>
+          <button onClick={onSubmit} disabled={!canSubmit || submitted} style={{
+            backgroundColor: canSubmit ? '#0e4d41' : '#e2e8f0', color: canSubmit ? 'white' : '#94a3b8',
+            border: 'none', padding: '0.65rem 2rem', borderRadius: '10px',
+            fontWeight: 700, fontSize: '0.875rem', cursor: canSubmit ? 'pointer' : 'not-allowed',
+            display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: submitted ? 0.7 : 1
+          }}>
+            Submit to Admin <ChevronRight size={16} />
+          </button>
         </div>
       </div>
 
-      {/* Signature */}
-      <div className="card" style={{ margin: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-          <Pen size={16} color="#0e4d41" />
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0e4d41', margin: 0 }}>Digital Signature</h3>
-        </div>
-        <SignatureCanvas onSave={onSign} />
-      </div>
-
-      {/* Compiled By blocks */}
-      <div className="card" style={{ margin: 0 }}>
-        <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Authorisation Record</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-          {[
-            { role: 'Compiled By', name: invoice.submittedBy, date: new Date().toLocaleDateString('en-ZA') },
-            { role: 'Verified By',   name: '—', date: '—' },
-            { role: 'Approved By',   name: '—', date: '—' },
-          ].map(block => (
-            <div key={block.role} style={{ textAlign: 'center', padding: '0.875rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>{block.role}</div>
-              <div style={{ fontWeight: 700, color: '#0e4d41', fontSize: '0.875rem' }}>{block.name}</div>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>{block.date}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {!canSubmit && (
-        <div style={{ display: 'flex', gap: '0.5rem', padding: '0.75rem 1rem', backgroundColor: '#fef3c7', borderRadius: '8px', border: '1px solid #fde68a', fontSize: '0.8rem', color: '#92400e' }}>
-          <AlertTriangle size={16} style={{ flexShrink: 0 }} />
-          {!allChecked ? 'Please tick all checklist items.' : 'Please draw your signature.'}
+      {/* Right: Embedded Document Preview */}
+      {invoice.documentUrl && (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <DocumentPreview url={invoice.documentUrl} title={invoice.documentName || 'Uploaded Invoice'} />
         </div>
       )}
-
-      {submitted && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.25rem', backgroundColor: '#d1fae5', borderRadius: '10px', border: '1px solid #6ee7b7', color: '#065f46', fontWeight: 700 }}>
-          <CheckCircle size={20} /> Invoice submitted successfully! Redirecting…
-        </div>
-      )}
-
-      {/* Nav */}
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <button onClick={onBack} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.65rem 1.5rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem', color: '#475569' }}>← Back</button>
-        <button onClick={onSubmit} disabled={!canSubmit || submitted} style={{
-          backgroundColor: canSubmit ? '#0e4d41' : '#e2e8f0', color: canSubmit ? 'white' : '#94a3b8',
-          border: 'none', padding: '0.65rem 2rem', borderRadius: '10px',
-          fontWeight: 700, fontSize: '0.875rem', cursor: canSubmit ? 'pointer' : 'not-allowed',
-          display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: submitted ? 0.7 : 1
-        }}>
-          Submit to Admin <ChevronRight size={16} />
-        </button>
-      </div>
     </div>
   );
 }

@@ -3,7 +3,9 @@ import {
   Search, Eye, CheckCircle, XCircle, Clock, BarChart2, FileText,
   Building, Landmark, Zap, Droplets, Trash2, Leaf, X, ChevronRight
 } from 'lucide-react';
-import { Invoice, InvoiceStatus } from '../../types';
+import { Invoice, InvoiceStatus, UtilityLine, RefuseCalc, BASLine } from '../../types';
+import { useQuery } from '@tanstack/react-query';
+import { fetchReviews, updateReview } from '../../utils/api';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -84,12 +86,113 @@ function buildSeedInvoice(id: string, overrides: Partial<Invoice>): Invoice {
   };
 }
 
-const SEED_INVOICES: Invoice[] = [
-  buildSeedInvoice('ADM-001', { invoiceNumber: 'INV-2026-0891', billingMonth: 'May 2026',  landlord: 'Seriti Office Parks',     status: 'In Review', submittedAt: '2026-06-10T08:00:00Z' }),
-  buildSeedInvoice('ADM-002', { invoiceNumber: 'INV-2026-1007', billingMonth: 'May 2026',  landlord: 'Blue Dawn Properties',    status: 'Approved',  submittedAt: '2026-06-12T10:30:00Z' }),
-  buildSeedInvoice('ADM-003', { invoiceNumber: 'INV-2026-1142', billingMonth: 'June 2026', landlord: 'Batho Property Holdings', status: 'In Review', submittedAt: '2026-06-16T08:00:00Z' }),
-  buildSeedInvoice('ADM-004', { invoiceNumber: 'INV-2026-0778', billingMonth: 'April 2026',landlord: 'Pretoria Commercial Ltd', status: 'Rejected',  submittedAt: '2026-05-30T09:15:00Z', rejectionReason: 'Meter readings inconsistent with prior month.' }),
-];
+function mapReviewToInvoice(review: any, filename: string): Invoice {
+  const isCOJ = review.serviceProvider.toLowerCase().includes('johannesburg') || review.serviceProvider.toLowerCase().includes('coj');
+  
+  let utilities: UtilityLine[] = [];
+  let refuse: RefuseCalc = {
+    councilTotal: 0,
+    proRataShare: 1,
+    calculatedShare: 0,
+    landlordClaimed: 0,
+    lesserOfTwo: 0,
+    approved: true
+  };
+  let basLines: BASLine[] = [];
+  let exclVat = review.amount;
+  let vatAmount = 0;
+
+  if (isCOJ) {
+    utilities = [
+      { type: 'Water', meterNumber: '941025570', consumption: '5 kl (36 days)', unitCost: 0, exclVat: 762.81, vat: 114.42, total: 877.23 },
+    ];
+    refuse = {
+      councilTotal: 327.00,
+      proRataShare: 1,
+      calculatedShare: 327.00,
+      landlordClaimed: 327.00,
+      lesserOfTwo: 327.00,
+      approved: true
+    };
+    basLines = [
+      { service: 'Property Rates', amount: 800.96, objective: 'Rates', responsibility: 'R040', fund: 'F001', asset: 'Rates', item: 'Rates', infrastructure: 'Rates' },
+      { service: 'Water & Sewerage', amount: 877.23, objective: 'Water', responsibility: 'R041', fund: 'F001', asset: 'Water', item: 'Water', infrastructure: 'Water' },
+      { service: 'Refuse', amount: 376.05, objective: 'Refuse', responsibility: 'R042', fund: 'F001', asset: 'Refuse', item: 'Refuse', infrastructure: 'Refuse' },
+    ];
+    exclVat = 800.96 + 762.81 + 327.00;
+    vatAmount = 163.47;
+  } else {
+    const isElectricity = review.serviceProvider.toLowerCase().includes('power') || review.serviceProvider.toLowerCase().includes('elect');
+    const isWater = review.serviceProvider.toLowerCase().includes('water') || review.serviceProvider.toLowerCase().includes('rates');
+    
+    if (isElectricity) {
+      utilities = [
+        { type: 'Electricity', meterNumber: 'E-1042-A', consumption: 'Calculated', unitCost: 1.85, exclVat: review.amount / 1.15, vat: (review.amount / 1.15) * 0.15, total: review.amount }
+      ];
+      basLines = [
+        { service: 'Electricity', amount: review.amount, objective: 'A03', responsibility: 'R041', fund: 'F001', asset: 'INF-E', item: '3107', infrastructure: 'I-022' }
+      ];
+    } else if (isWater) {
+      utilities = [
+        { type: 'Water', meterNumber: 'W-0837-B', consumption: 'Calculated', unitCost: 22.40, exclVat: review.amount / 1.15, vat: (review.amount / 1.15) * 0.15, total: review.amount }
+      ];
+      basLines = [
+        { service: 'Water', amount: review.amount, objective: 'A04', responsibility: 'R041', fund: 'F001', asset: 'INF-W', item: '3108', infrastructure: 'I-023' }
+      ];
+    } else {
+      refuse = {
+        councilTotal: review.amount,
+        proRataShare: 1,
+        calculatedShare: review.amount,
+        landlordClaimed: review.amount,
+        lesserOfTwo: review.amount,
+        approved: true
+      };
+      basLines = [
+        { service: 'Sundry Payment', amount: review.amount, objective: 'A01', responsibility: 'R010', fund: 'F001', asset: 'GEN', item: '9901', infrastructure: 'I-001' }
+      ];
+    }
+    exclVat = review.amount / 1.15;
+    vatAmount = review.amount - exclVat;
+  }
+
+  return {
+    id: review.id || `INV-${Date.now()}`,
+    invoiceNumber: review.invoiceNumber || 'INV-TEMP',
+    invoiceDate: review.invoiceDate || new Date().toISOString().split('T')[0],
+    billingMonth: review.billingPeriod || 'May 2026',
+    receivedDate: review.receivedDate || new Date().toISOString().split('T')[0],
+    paymentMethod: 'EBT',
+    landlord: review.serviceProvider,
+    propertyAddress: review.propertyBuilding || '32 UCR1 Crescent, Halfway Gardens Ext.44',
+    buildingSizeM2: 308,
+    leasedAreaM2: 308,
+    proRataShare: 100,
+    payeeName: review.serviceProvider,
+    vatNumber: isCOJ ? '4760117194' : '4510213876',
+    bankName: isCOJ ? 'Standard Bank' : 'First National Bank',
+    accountNumber: review.accountNumber || '1234567890',
+    branchCode: '250655',
+    accountType: 'Business Cheque',
+    verifiedEntity: true,
+    utilities,
+    refuse,
+    basLines,
+    exclVat,
+    vatAmount,
+    totalAmount: review.amount,
+    status: review.status === 'In Review' ? 'In Review' : review.status === 'Approved' ? 'Approved' : review.status === 'Returned' ? 'Rejected' : 'Pending',
+    submittedBy: 'Thabo Mokoena',
+    submittedAt: review.createdAt || new Date().toISOString(),
+    checklistItems: [
+      { label: 'All utility meter readings match municipal statements', checked: true },
+      { label: 'Pro-rata calculation verified against lease agreement', checked: true },
+      { label: 'Payee banking details match CSD verification', checked: true },
+    ],
+    documentName: filename,
+    documentUrl: review.documents?.[0]?.url || ''
+  };
+}
 
 // ─── Confirmation Modal ────────────────────────────────────────────────────────
 
@@ -152,8 +255,49 @@ function ConfirmModal({ onClose, onConfirm, type }: ModalProps) {
 
 interface Props { user: any; }
 
+function DocumentPreview({ url, title }: { url?: string; title: string }) {
+  if (!url) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '300px', backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '2rem', color: '#64748b' }}>
+        <FileText size={48} style={{ marginBottom: '1rem', color: '#94a3b8' }} />
+        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>No document file available</span>
+      </div>
+    );
+  }
+
+  const isPdf = url.toLowerCase().includes('.pdf') || url.includes('data:application/pdf');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '500px', backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <FileText size={16} color="#0e4d41" />
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0e4d41' }}>{title}</span>
+        </div>
+        <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#0e4d41', fontWeight: 600, textDecoration: 'underline' }}>Open In New Tab</a>
+      </div>
+      <div style={{ flex: 1, backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        {isPdf ? (
+          <iframe src={url} style={{ width: '100%', height: '100%', minHeight: '500px', border: 'none' }} title="Document PDF Preview" />
+        ) : (
+          <img src={url} style={{ maxWidth: '100%', maxHeight: '520px', objectFit: 'contain', padding: '0.5rem' }} alt="Document Preview" />
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Admin({ user }: Props) {
-  const [invoices, setInvoices] = useState<Invoice[]>(SEED_INVOICES);
+  const { data: reviewsData, refetch: refetchReviews } = useQuery<any[]>({
+    queryKey: ['reviews'],
+    queryFn: fetchReviews
+  });
+
+  const invoices: Invoice[] = React.useMemo(() => {
+    if (!reviewsData) return [];
+    return reviewsData.map(r => mapReviewToInvoice(r, r.documents?.[0]?.name || 'Invoice'));
+  }, [reviewsData]);
+
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'All' | InvoiceStatus>('All');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
@@ -175,21 +319,35 @@ export default function Admin({ user }: Props) {
     return matchSearch && matchStatus;
   });
 
-  function handleConfirm(reason?: string) {
+  async function handleConfirm(reason?: string) {
     if (!selectedInvoice) return;
     const newStatus: InvoiceStatus = modal === 'approve' ? 'Approved' : 'Rejected';
-    const updated: Invoice = {
-      ...selectedInvoice,
-      status: newStatus,
-      reviewedBy: user?.firstName ? `${user.firstName} ${user.lastName}` : 'Admin',
-      reviewedAt: new Date().toISOString(),
-      rejectionReason: reason,
-    };
-    setInvoices(prev => prev.map(inv => inv.id === selectedInvoice.id ? updated : inv));
-    setSelectedInvoice(updated);
-    setModal(null);
-    setActionDone(newStatus === 'Approved' ? 'approved' : 'rejected');
-    setTimeout(() => setActionDone(null), 3500);
+    const dbStatus = newStatus === 'Approved' ? 'Approved' : 'Returned';
+    
+    try {
+      await updateReview(selectedInvoice.id, {
+        status: dbStatus,
+        directorComments: reason || 'Approved by Admin',
+        ddComments: reason || 'Approved by Admin',
+        clerkComments: reason || 'Approved by Admin'
+      });
+      await refetchReviews();
+      
+      const updated: Invoice = {
+        ...selectedInvoice,
+        status: newStatus,
+        reviewedBy: user?.firstName ? `${user.firstName} ${user.lastName}` : 'Admin',
+        reviewedAt: new Date().toISOString(),
+        rejectionReason: reason,
+      };
+      setSelectedInvoice(updated);
+      setModal(null);
+      setActionDone(newStatus === 'Approved' ? 'approved' : 'rejected');
+      setTimeout(() => setActionDone(null), 3500);
+    } catch (err: any) {
+      console.error(err);
+      alert(`Failed to update status in the database: ${err.message || err}`);
+    }
   }
 
   // ── Review Sheet ─────────────────────────────────────────────
@@ -205,7 +363,7 @@ export default function Admin({ user }: Props) {
       <>
         {modal && <ConfirmModal type={modal} onClose={() => setModal(null)} onConfirm={handleConfirm} />}
 
-        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+        <div style={{ maxWidth: selectedInvoice.documentUrl ? '1200px' : '960px', margin: '0 auto' }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
             <button onClick={() => setSelectedInvoice(null)} style={{ background: 'none', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.4rem 0.9rem', cursor: 'pointer', color: '#475569', fontSize: '0.8rem', fontWeight: 600 }}>← Back</button>
@@ -253,111 +411,123 @@ export default function Admin({ user }: Props) {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-            {/* Invoice Summary */}
-            <div className="card" style={{ margin: 0 }}>
-              <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Invoice Summary</h3>
-              {[
-                ['Invoice Number', selectedInvoice.invoiceNumber],
-                ['Billing Month',  selectedInvoice.billingMonth],
-                ['Invoice Date',   selectedInvoice.invoiceDate],
-                ['Received Date',  selectedInvoice.receivedDate],
-                ['Payment Method', selectedInvoice.paymentMethod],
-                ['Submitted By',   selectedInvoice.submittedBy],
-                ['Submitted Date', new Date(selectedInvoice.submittedAt).toLocaleDateString('en-ZA')],
-              ].map(([l, v]) => (
-                <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.45rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
-                  <span style={{ color: '#64748b' }}>{l}</span><span style={{ fontWeight: 600 }}>{v}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Property & Payee */}
+          <div style={{ display: 'grid', gridTemplateColumns: selectedInvoice.documentUrl ? '1.2fr 1fr' : '1fr', gap: '1.5rem' }}>
+            {/* Left: Metadata and detail sheets */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div className="card" style={{ margin: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.875rem' }}>
-                  <Building size={15} color="#0e4d41" />
-                  <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', margin: 0 }}>Property</h3>
-                </div>
-                {[
-                  ['Landlord',     selectedInvoice.landlord],
-                  ['Address',      selectedInvoice.propertyAddress],
-                  ['Pro-Rata',     `${selectedInvoice.proRataShare}%`],
-                ].map(([l, v]) => (
-                  <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
-                    <span style={{ color: '#64748b' }}>{l}</span><span style={{ fontWeight: 600, textAlign: 'right', maxWidth: '60%' }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="card" style={{ margin: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Landmark size={15} color="#0e4d41" />
-                    <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', margin: 0 }}>Payee & Bank</h3>
-                  </div>
-                  {selectedInvoice.verifiedEntity && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.7rem', fontWeight: 700, padding: '0.15rem 0.5rem', borderRadius: '999px' }}>
-                      <CheckCircle size={10}/> Verified
-                    </span>
-                  )}
-                </div>
-                {[
-                  ['VAT No.',     selectedInvoice.vatNumber],
-                  ['Bank',        selectedInvoice.bankName],
-                  ['Account No.', selectedInvoice.accountNumber],
-                  ['Branch Code', selectedInvoice.branchCode],
-                ].map(([l, v]) => (
-                  <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
-                    <span style={{ color: '#64748b' }}>{l}</span><span style={{ fontWeight: 600 }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Checklist status */}
-            <div className="card" style={{ margin: 0 }}>
-              <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Verification Checklist</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {selectedInvoice.checklistItems.map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8125rem', color: item.checked ? '#065f46' : '#64748b' }}>
-                    <div style={{ width: '20px', height: '20px', borderRadius: '6px', backgroundColor: item.checked ? '#0e4d41' : '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      {item.checked && <CheckCircle size={13} color="white" />}
-                    </div>
-                    {item.label}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Utility breakdown */}
-            <div className="card" style={{ margin: 0 }}>
-              <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Utility Breakdown</h3>
-              {selectedInvoice.utilities.map(u => (
-                <div key={u.type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#374151' }}>{utilityIcons[u.type]}{u.type}</span>
-                  <span style={{ fontWeight: 700, color: '#0e4d41' }}>{fmtZAR(u.total)}</span>
-                </div>
-              ))}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#374151' }}><Leaf size={14} color="#16a34a"/>Refuse</span>
-                <span style={{ fontWeight: 700, color: '#0e4d41' }}>{fmtZAR(selectedInvoice.refuse.lesserOfTwo)}</span>
-              </div>
-
-              <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', textAlign: 'center' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                {/* Invoice Summary */}
+                <div className="card" style={{ margin: 0 }}>
+                  <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Invoice Summary</h3>
                   {[
-                    { label: 'Excl. VAT',    value: fmtZAR(selectedInvoice.exclVat) },
-                    { label: 'VAT (15%)',     value: fmtZAR(selectedInvoice.vatAmount) },
-                    { label: 'Total Amount',  value: fmtZAR(selectedInvoice.totalAmount) },
-                  ].map(item => (
-                    <div key={item.label}>
-                      <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</div>
-                      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0e4d41', marginTop: '0.2rem' }}>{item.value}</div>
+                    ['Invoice Number', selectedInvoice.invoiceNumber],
+                    ['Billing Month',  selectedInvoice.billingMonth],
+                    ['Invoice Date',   selectedInvoice.invoiceDate],
+                    ['Received Date',  selectedInvoice.receivedDate],
+                    ['Payment Method', selectedInvoice.paymentMethod],
+                    ['Submitted By',   selectedInvoice.submittedBy],
+                    ['Submitted Date', new Date(selectedInvoice.submittedAt).toLocaleDateString('en-ZA')],
+                  ].map(([l, v]) => (
+                    <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.45rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
+                      <span style={{ color: '#64748b' }}>{l}</span><span style={{ fontWeight: 600 }}>{v}</span>
                     </div>
                   ))}
                 </div>
+
+                {/* Property & Payee */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div className="card" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.875rem' }}>
+                      <Building size={15} color="#0e4d41" />
+                      <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', margin: 0 }}>Property</h3>
+                    </div>
+                    {[
+                      ['Landlord',     selectedInvoice.landlord],
+                      ['Address',      selectedInvoice.propertyAddress],
+                      ['Pro-Rata',     `${selectedInvoice.proRataShare}%`],
+                    ].map(([l, v]) => (
+                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
+                        <span style={{ color: '#64748b' }}>{l}</span><span style={{ fontWeight: 600, textAlign: 'right', maxWidth: '60%' }}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="card" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Landmark size={15} color="#0e4d41" />
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', margin: 0 }}>Payee & Bank</h3>
+                      </div>
+                      {selectedInvoice.verifiedEntity && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.7rem', fontWeight: 700, padding: '0.15rem 0.5rem', borderRadius: '999px' }}>
+                          <CheckCircle size={10}/> Verified
+                        </span>
+                      )}
+                    </div>
+                    {[
+                      ['VAT No.',     selectedInvoice.vatNumber],
+                      ['Bank',        selectedInvoice.bankName],
+                      ['Account No.', selectedInvoice.accountNumber],
+                      ['Branch Code', selectedInvoice.branchCode],
+                    ].map(([l, v]) => (
+                      <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
+                        <span style={{ color: '#64748b' }}>{l}</span><span style={{ fontWeight: 600 }}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Checklist status */}
+                <div className="card" style={{ margin: 0 }}>
+                  <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Verification Checklist</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {selectedInvoice.checklistItems.map((item, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8125rem', color: item.checked ? '#065f46' : '#64748b' }}>
+                        <div style={{ width: '20px', height: '20px', borderRadius: '6px', backgroundColor: item.checked ? '#0e4d41' : '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {item.checked && <CheckCircle size={13} color="white" />}
+                        </div>
+                        {item.label}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Utility breakdown */}
+                <div className="card" style={{ margin: 0 }}>
+                  <h3 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0e4d41', marginBottom: '1rem' }}>Utility Breakdown</h3>
+                  {selectedInvoice.utilities.map(u => (
+                    <div key={u.type} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#374151' }}>{utilityIcons[u.type]}{u.type}</span>
+                      <span style={{ fontWeight: 700, color: '#0e4d41' }}>{fmtZAR(u.total)}</span>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9', fontSize: '0.8125rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#374151' }}><Leaf size={14} color="#16a34a"/>Refuse</span>
+                    <span style={{ fontWeight: 700, color: '#0e4d41' }}>{fmtZAR(selectedInvoice.refuse.lesserOfTwo)}</span>
+                  </div>
+
+                  <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', textAlign: 'center' }}>
+                      {[
+                        { label: 'Excl. VAT',    value: fmtZAR(selectedInvoice.exclVat) },
+                        { label: 'VAT (15%)',     value: fmtZAR(selectedInvoice.vatAmount) },
+                        { label: 'Total Amount',  value: fmtZAR(selectedInvoice.totalAmount) },
+                      ].map(item => (
+                        <div key={item.label}>
+                          <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.label}</div>
+                          <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0e4d41', marginTop: '0.2rem' }}>{item.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Right: Embedded Document Preview */}
+            {selectedInvoice.documentUrl && (
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <DocumentPreview url={selectedInvoice.documentUrl} title={selectedInvoice.documentName || 'Uploaded Invoice'} />
+              </div>
+            )}
           </div>
         </div>
       </>
