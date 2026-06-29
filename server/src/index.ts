@@ -47,7 +47,11 @@ if (fs.existsSync(clientBuildDir)) {
   app.use(express.static(clientBuildDir));
   // SPA fallback — all non-API GET requests return index.html
   app.use((req: Request, res: Response, next) => {
-    if (req.method === 'GET' && !req.path.startsWith('/api')) {
+    const isApi = req.path.startsWith('/api');
+    const isUploads = req.path.startsWith('/uploads');
+    const hasExtension = path.extname(req.path) !== '';
+    
+    if (req.method === 'GET' && !isApi && !isUploads && !hasExtension) {
       res.sendFile(path.join(clientBuildDir, 'index.html'));
     } else {
       next();
