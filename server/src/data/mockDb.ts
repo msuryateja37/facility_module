@@ -1,7 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 
-const DB_FILE = path.join(__dirname, 'db.json');
+let DB_FILE = path.join(__dirname, 'db.json');
+if (process.env.HOME) {
+  DB_FILE = path.join(process.env.HOME, 'db.json');
+}
 
 export interface ReviewDocument {
   name: string;
