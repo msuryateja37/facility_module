@@ -76,8 +76,13 @@ const clientBuildDir = path_1.default.join(__dirname, 'public');
 if (fs_1.default.existsSync(clientBuildDir)) {
     app.use(express_1.default.static(clientBuildDir));
     // SPA fallback — all non-API GET requests return index.html
-    app.get('*', (req, res) => {
-        res.sendFile(path_1.default.join(clientBuildDir, 'index.html'));
+    app.use((req, res, next) => {
+        if (req.method === 'GET' && !req.path.startsWith('/api')) {
+            res.sendFile(path_1.default.join(clientBuildDir, 'index.html'));
+        }
+        else {
+            next();
+        }
     });
 }
 // Initialize database connection & start server

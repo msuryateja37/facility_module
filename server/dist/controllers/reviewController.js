@@ -8,6 +8,7 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const Review_1 = require("../models/Review");
 const azureAiService_1 = require("../services/azureAiService");
+const azureBlobService_1 = require("../services/azureBlobService");
 const getStats = async (req, res) => {
     try {
         const reviews = await Review_1.Review.getAll();
@@ -152,8 +153,11 @@ const uploadInvoice = async (req, res) => {
             : fileBase64;
         const uniqueFileName = `${Date.now()}_${fileName.replace(/\s+/g, '_')}`;
         const filePath = path_1.default.join(uploadsDir, uniqueFileName);
-        fs_1.default.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+        const fileBuffer = Buffer.from(base64Data, 'base64');
+        fs_1.default.writeFileSync(filePath, fileBuffer);
         console.log(`Saved uploaded invoice file to: ${filePath}`);
+        // Upload to Azure Blob Storage
+        const documentUrl = await (0, azureBlobService_1.uploadBlob)(uniqueFileName, fileBuffer, fileType);
         const extracted = await (0, azureAiService_1.extractInvoiceData)(fileName, fileType, fileBase64);
         const newReview = await Review_1.Review.create({
             serviceProvider: extracted.serviceProvider,
@@ -172,7 +176,7 @@ const uploadInvoice = async (req, res) => {
             clerkComments: `AI Generative Extraction completed from file '${fileName}'`,
             supervisorComments: `Generative AI Analysis:\n- Description: ${extracted.description}\n- Bank account details: ${extracted.accountDetails}`,
             documents: [
-                { name: fileName, status: "Uploaded", url: `/uploads/${uniqueFileName}` },
+                { name: fileName, status: "Uploaded", url: documentUrl },
                 { name: "Sundry Payment Form", status: "Uploaded" },
                 { name: "Calculation Sheet", status: "Uploaded" }
             ],
