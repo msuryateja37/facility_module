@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -9,6 +42,7 @@ const path_1 = __importDefault(require("path"));
 const Review_1 = require("../models/Review");
 const azureAiService_1 = require("../services/azureAiService");
 const azureBlobService_1 = require("../services/azureBlobService");
+const db = __importStar(require("../data/dbConnector"));
 const getStats = async (req, res) => {
     try {
         const reviews = await Review_1.Review.getAll();
@@ -40,10 +74,20 @@ const getStats = async (req, res) => {
 exports.getStats = getStats;
 const getReviews = async (req, res) => {
     try {
+        const page = req.query.page ? parseInt(req.query.page) : undefined;
+        const limit = req.query.limit ? parseInt(req.query.limit) : undefined;
+        const search = req.query.search || '';
+        const status = req.query.status || '';
+        // If page is specified, run paginated query
+        if (page !== undefined && limit !== undefined) {
+            const payload = await Review_1.Review.getPaginated(page, limit, search, status);
+            return res.status(200).json(payload);
+        }
         const reviews = await Review_1.Review.getAll();
         return res.status(200).json(reviews);
     }
     catch (err) {
+        console.error("Error in getReviews controller:", err);
         return res.status(500).json({ message: "Error loading reviews" });
     }
 };
@@ -142,26 +186,63 @@ const uploadInvoice = async (req, res) => {
         return res.status(400).json({ message: "Missing required file upload fields" });
     }
     try {
-        // Ensure uploads folder exists
+        // Resolve supervisor province vault scope
+        const authHeader = req.headers.authorization;
+        let username = 'supervisor';
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.substring(7);
+            if (token.startsWith('mock-jwt-token-')) {
+                username = token.substring('mock-jwt-token-'.length);
+            }
+        }
+        const user = await db.getUserByUsername(username);
+        const province = user?.province || 'Gauteng';
+        // Run AI extraction early to verify province alignment and invoice validity
+        const extracted = await (0, azureAiService_1.extractInvoiceData)(fileName, fileType, fileBase64);
+        const isValid = extracted.isValidInvoice !== false && String(extracted.isValidInvoice).toLowerCase() !== 'false';
+        if (!isValid) {
+            return res.status(400).json({
+                message: extracted.validationError || "Please upload a correct invoice. The system detected that the uploaded document is not a valid invoice."
+            });
+        }
+        const isSupervisor = user?.assignedRole === 'supervisor';
+        const invoiceProvince = extracted.province || 'Gauteng';
+        if (isSupervisor && invoiceProvince.toLowerCase() !== province.toLowerCase()) {
+            return res.status(400).json({
+                message: `AI verification failed: You are assigned to ${province} province, but this invoice belongs to ${invoiceProvince}.`
+            });
+        }
+        // Generate Tracking number: INV-(first 4 letters of province)-(random number)
+        const cleanProvince = province.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase();
+        const randomNum = Math.floor(100000 + Math.random() * 900000);
+        const trackingNumber = `INV-${cleanProvince}-${randomNum}`;
+        // Decode base64 file data
+        const base64Data = fileBase64.includes('base64,')
+            ? fileBase64.split('base64,')[1]
+            : fileBase64;
+        const fileBuffer = Buffer.from(base64Data, 'base64');
+        // Save locally first for tracking if needed
         const uploadsDir = process.env.HOME
             ? path_1.default.join(process.env.HOME, 'uploads')
             : path_1.default.join(__dirname, '../../uploads');
         if (!fs_1.default.existsSync(uploadsDir)) {
             fs_1.default.mkdirSync(uploadsDir, { recursive: true });
         }
-        // Clean base64 data and save to file
-        const base64Data = fileBase64.includes('base64,')
-            ? fileBase64.split('base64,')[1]
-            : fileBase64;
         const uniqueFileName = `${Date.now()}_${fileName.replace(/\s+/g, '_')}`;
         const filePath = path_1.default.join(uploadsDir, uniqueFileName);
-        const fileBuffer = Buffer.from(base64Data, 'base64');
         fs_1.default.writeFileSync(filePath, fileBuffer);
-        console.log(`Saved uploaded invoice file to: ${filePath}`);
-        // Upload to Azure Blob Storage
-        const documentUrl = await (0, azureBlobService_1.uploadBlob)(uniqueFileName, fileBuffer, fileType);
-        const extracted = await (0, azureAiService_1.extractInvoiceData)(fileName, fileType, fileBase64);
+        // Upload directly and exclusively to Vault on Azure Blob Storage
+        const documentUrl = await (0, azureBlobService_1.uploadVaultFile)(province, trackingNumber, fileName, fileBuffer, fileType);
+        // Create a matching Vault Folder in database
+        await db.createVaultFolder({
+            incidentNumber: trackingNumber,
+            province: province,
+            description: `Auto-generated vault folder for incident ${trackingNumber}`,
+            createdBy: username
+        });
+        // Create the Review case in DB using the generated tracking ID
         const newReview = await Review_1.Review.create({
+            id: trackingNumber,
             serviceProvider: extracted.serviceProvider,
             propertyBuilding: extracted.propertyBuilding,
             billingPeriod: extracted.billingPeriod,

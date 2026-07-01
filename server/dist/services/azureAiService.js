@@ -51,7 +51,10 @@ async function extractInvoiceData(fileName, fileType, fileBase64) {
                            "receivedDate": "yyyy-MM-dd (default to: ${new Date().toISOString().split('T')[0]})",
                            "accountDetails": "bank details or municipal account number extracted from invoice",
                            "billingPeriod": "e.g., May 2026, April 2026",
-                           "description": "A concise general description of the items billed (e.g., Electricity consumption charges for Block A annex building)"
+                           "description": "A concise general description of the items billed (e.g., Electricity consumption charges for Block A annex building)",
+                           "province": "The South African province where the municipal facility, building, or service is located (must be one of: Eastern Cape, Free State, Gauteng, KwaZulu-Natal, Limpopo, Mpumalanga, Northern Cape, North West, Western Cape)",
+                           "isValidInvoice": boolean (true if this document is a valid municipal bill, corporate utility statement, or facility invoice. If the image is a picture of an unrelated object, animal, person, or generic document, output false),
+                           "validationError": "A short descriptive error message if isValidInvoice is false explaining why, or leave blank if true"
                          }`
                                 },
                                 {
@@ -89,6 +92,49 @@ async function extractInvoiceData(fileName, fileType, fileBase64) {
     await new Promise(r => setTimeout(r, 2000)); // Simulate AI processing delay
     const nameLower = fileName.toLowerCase();
     const currentDate = new Date().toISOString().split('T')[0];
+    let detectedProvince = 'Gauteng';
+    if (nameLower.includes('cape') || nameLower.includes('wc') || nameLower.includes('ct')) {
+        detectedProvince = 'Western Cape';
+    }
+    else if (nameLower.includes('kzn') || nameLower.includes('durban') || nameLower.includes('natal')) {
+        detectedProvince = 'KwaZulu-Natal';
+    }
+    else if (nameLower.includes('limpopo') || nameLower.includes('polokwane')) {
+        detectedProvince = 'Limpopo';
+    }
+    else if (nameLower.includes('mpumalanga')) {
+        detectedProvince = 'Mpumalanga';
+    }
+    else if (nameLower.includes('free state') || nameLower.includes('fs') || nameLower.includes('bloem')) {
+        detectedProvince = 'Free State';
+    }
+    else if (nameLower.includes('north west') || nameLower.includes('nw')) {
+        detectedProvince = 'North West';
+    }
+    else if (nameLower.includes('northern cape') || nameLower.includes('nc')) {
+        detectedProvince = 'Northern Cape';
+    }
+    else if (nameLower.includes('eastern cape') || nameLower.includes('ec')) {
+        detectedProvince = 'Eastern Cape';
+    }
+    // Check if filename contains explicitly invalid keywords to simulate document validation
+    const hasNegativeKeywords = ['cat', 'dog', 'photo', 'unrelated', 'landscape', 'car', 'dummy', 'test_image'].some(k => nameLower.includes(k));
+    if (hasNegativeKeywords) {
+        return {
+            serviceProvider: "",
+            propertyBuilding: "",
+            amount: 0,
+            invoiceNumber: "",
+            invoiceDate: "",
+            receivedDate: currentDate,
+            accountDetails: "",
+            billingPeriod: "",
+            description: "",
+            province: detectedProvince,
+            isValidInvoice: false,
+            validationError: "Please upload a correct invoice. The system detected that the uploaded document is not a valid invoice."
+        };
+    }
     if (nameLower.includes('coj')) {
         return {
             serviceProvider: "City of Johannesburg",
@@ -99,7 +145,8 @@ async function extractInvoiceData(fileName, fileType, fileBase64) {
             receivedDate: currentDate,
             accountDetails: "Standard Bank CIN AA45 Ref: 556259155",
             billingPeriod: "May 2026",
-            description: "Municipal statement for Property Rates (R800.96), Water/Sewerage (R877.23), and Refuse (R376.05)."
+            description: "Municipal statement for Property Rates (R800.96), Water/Sewerage (R877.23), and Refuse (R376.05).",
+            province: detectedProvince
         };
     }
     else if (nameLower.includes('power') || nameLower.includes('elect') || nameLower.includes('light')) {
@@ -112,7 +159,8 @@ async function extractInvoiceData(fileName, fileType, fileBase64) {
             receivedDate: currentDate,
             accountDetails: "FNB Branch Code: 250655 Acc: 6224190831",
             billingPeriod: "June 2026",
-            description: "Municipal bulk electricity grid consumption billing charges for South Wing offices."
+            description: "Municipal bulk electricity grid consumption billing charges for South Wing offices.",
+            province: detectedProvince
         };
     }
     else if (nameLower.includes('water') || nameLower.includes('rates') || nameLower.includes('sewer')) {
@@ -125,7 +173,8 @@ async function extractInvoiceData(fileName, fileType, fileBase64) {
             receivedDate: currentDate,
             accountDetails: "Standard Bank Code: 000205 Acc: 109204851",
             billingPeriod: "June 2026",
-            description: "Potable sanitation and municipal main water usage rates for Pretoria offices."
+            description: "Potable sanitation and municipal main water usage rates for Pretoria offices.",
+            province: detectedProvince
         };
     }
     else if (nameLower.includes('lease') || nameLower.includes('printer') || nameLower.includes('minolta') || nameLower.includes('copier')) {
@@ -138,7 +187,8 @@ async function extractInvoiceData(fileName, fileType, fileBase64) {
             receivedDate: currentDate,
             accountDetails: "Nedbank Code: 198765 Acc: 1492083109",
             billingPeriod: "June 2026",
-            description: "Lease rental agreement billing charges for multi-function office copiers."
+            description: "Lease rental agreement billing charges for multi-function office copiers.",
+            province: detectedProvince
         };
     }
     else {
@@ -152,7 +202,8 @@ async function extractInvoiceData(fileName, fileType, fileBase64) {
             receivedDate: currentDate,
             accountDetails: "Absa Bank Code: 632005 Acc: 409122340",
             billingPeriod: "June 2026",
-            description: "Corporate office building deep sanitization, hygiene care, and cleaning supplies service."
+            description: "Corporate office building deep sanitization, hygiene care, and cleaning supplies service.",
+            province: detectedProvince
         };
     }
 }

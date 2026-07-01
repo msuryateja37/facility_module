@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search, Eye, CheckCircle, XCircle, Clock, BarChart2, FileText,
   Building, Landmark, Zap, Droplets, Trash2, Leaf, X, ChevronRight
@@ -288,36 +288,71 @@ function DocumentPreview({ url, title }: { url?: string; title: string }) {
 }
 
 export default function Admin({ user }: Props) {
-  const { data: reviewsData, refetch: refetchReviews } = useQuery<any[]>({
-    queryKey: ['reviews'],
-    queryFn: fetchReviews
-  });
-
-  const invoices: Invoice[] = React.useMemo(() => {
-    if (!reviewsData) return [];
-    return reviewsData.map(r => mapReviewToInvoice(r, r.documents?.[0]?.name || 'Invoice'));
-  }, [reviewsData]);
-
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'All' | InvoiceStatus>('All');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [modal, setModal] = useState<'approve' | 'reject' | null>(null);
   const [actionDone, setActionDone] = useState<'approved' | 'rejected' | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [showInvoiceList, setShowInvoiceList] = useState(false);
 
-  const stats = {
-    total:    invoices.length,
-    pending:  invoices.filter(i => i.status === 'Pending').length,
-    inReview: invoices.filter(i => i.status === 'In Review').length,
-    approved: invoices.filter(i => i.status === 'Approved').length,
-  };
-
-  const filtered = invoices.filter(inv => {
-    const matchSearch = inv.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-                        inv.landlord.toLowerCase().includes(search.toLowerCase()) ||
-                        inv.billingMonth.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === 'All' || inv.status === filterStatus;
-    return matchSearch && matchStatus;
+  // Paginated query for cases table
+  const { data: reviewsPayload, refetch: refetchReviews } = useQuery<any>({
+    queryKey: ['reviews', currentPage, search, filterStatus],
+    queryFn: () => fetchReviews(currentPage, itemsPerPage, search, filterStatus)
   });
+
+  // Global unpaginated query for charts and statistics calculation
+  const { data: allReviewsData, refetch: refetchAll } = useQuery<any[]>({
+    queryKey: ['allReviews'],
+    queryFn: () => fetchReviews()
+  });
+
+  const invoices: Invoice[] = React.useMemo(() => {
+    if (!reviewsPayload) return [];
+    const reviewsList = Array.isArray(reviewsPayload) ? reviewsPayload : (reviewsPayload.reviews || []);
+    return reviewsList.map((r: any) => mapReviewToInvoice(r, r.documents?.[0]?.name || 'Invoice'));
+  }, [reviewsPayload]);
+
+  // Derived stats calculated globally
+  const stats = React.useMemo(() => {
+    if (!allReviewsData) return { total: 0, pending: 0, inReview: 0, approved: 0 };
+    const mapped = allReviewsData.map((r: any) => mapReviewToInvoice(r, r.documents?.[0]?.name || 'Invoice'));
+    return {
+      total:     mapped.length,
+      pending:   mapped.filter(i => i.status === 'Pending').length,
+      inReview:  mapped.filter(i => i.status === 'In Review').length,
+      approved:  mapped.filter(i => i.status === 'Approved').length,
+    };
+  }, [allReviewsData]);
+
+  // Invoices per Province stats grouped from global query
+  const provinceStats = React.useMemo(() => {
+    if (!allReviewsData) return [];
+    const counts: Record<string, { count: number, amount: number }> = {};
+    allReviewsData.forEach((r: any) => {
+      const prov = r.province || 'Gauteng';
+      if (!counts[prov]) {
+        counts[prov] = { count: 0, amount: 0 };
+      }
+      counts[prov].count += 1;
+      counts[prov].amount += r.amount || 0;
+    });
+    return Object.entries(counts).map(([province, data]) => ({
+      province,
+      count: data.count,
+      amount: data.amount
+    })).sort((a, b) => b.count - a.count);
+  }, [allReviewsData]);
+
+  // Reset pagination on filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterStatus]);
+
+  const totalPages = reviewsPayload && !Array.isArray(reviewsPayload) ? (reviewsPayload.totalPages || 1) : 1;
+  const filteredCount = reviewsPayload && !Array.isArray(reviewsPayload) ? (reviewsPayload.total || 0) : invoices.length;
 
   async function handleConfirm(reason?: string) {
     if (!selectedInvoice) return;
@@ -332,6 +367,7 @@ export default function Admin({ user }: Props) {
         clerkComments: reason || 'Approved by Admin'
       });
       await refetchReviews();
+      await refetchAll();
       
       const updated: Invoice = {
         ...selectedInvoice,
@@ -539,8 +575,8 @@ export default function Admin({ user }: Props) {
     <div>
       {/* Page Header */}
       <div style={{ marginBottom: '1.75rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0e4d41', margin: 0 }}>Invoice Management</h1>
-        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>Review and approve invoices submitted by supervisors</p>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0e4d41', margin: 0 }}>Compliance Dashboard</h1>
+        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#64748b' }}>Review utility audit reports, compliance statuses, and regional audits</p>
       </div>
 
       {/* Stats Cards */}
@@ -561,66 +597,279 @@ export default function Admin({ user }: Props) {
         ))}
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
-          <Search size={15} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search invoices…" style={{
-            width: '100%', padding: '0.6rem 0.75rem 0.6rem 2.25rem',
-            border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem',
-            outline: 'none', backgroundColor: 'white', boxSizing: 'border-box'
-          }} />
+      {/* Visual Analytics Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem', marginBottom: '1.75rem' }}>
+        {/* Invoices per Province Bar Chart */}
+        <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0e4d41', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Building size={16} /> Invoices Distribution by Province
+          </h3>
+          {provinceStats.length === 0 ? (
+            <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>No data available</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {provinceStats.map(stat => {
+                const maxCount = Math.max(...provinceStats.map(p => p.count), 1);
+                const percent = (stat.count / maxCount) * 100;
+                return (
+                  <div key={stat.province}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginBottom: '0.35rem' }}>
+                      <span>{stat.province}</span>
+                      <span style={{ color: '#0e4d41' }}>{stat.count} {stat.count === 1 ? 'invoice' : 'invoices'} ({fmtZAR(stat.amount)})</span>
+                    </div>
+                    <div style={{ height: '8px', width: '100%', backgroundColor: '#f1f5f9', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div 
+                        style={{ 
+                          height: '100%', 
+                          width: `${percent}%`, 
+                          background: 'linear-gradient(90deg, #10b981, #0e4d41)', 
+                          borderRadius: '999px',
+                          transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)' 
+                        }} 
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as any)} style={{
-          padding: '0.6rem 1rem', border: '1px solid #e2e8f0', borderRadius: '10px',
-          fontSize: '0.875rem', backgroundColor: 'white', cursor: 'pointer', outline: 'none'
-        }}>
-          <option value="All">All Statuses</option>
-          <option value="Pending">Pending</option>
-          <option value="In Review">In Review</option>
-          <option value="Approved">Approved</option>
-          <option value="Rejected">Rejected</option>
-        </select>
+
+        {/* Status Distribution Doughnut/Circular Style */}
+        <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0e4d41', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <BarChart2 size={16} /> Compliance Review Status Breakdown
+          </h3>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: '1rem' }}>
+            {/* Visual SVG Circular Donut Chart */}
+            <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+              <svg width="100%" height="100%" viewBox="0 0 42 42" className="donut">
+                <circle className="donut-hole" cx="21" cy="21" r="15.91549430918954" fill="#fff" />
+                <circle className="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#f1f5f9" strokeWidth="4.5" />
+                {(() => {
+                  const total = stats.total || 1;
+                  const pctApproved = (stats.approved / total) * 100;
+                  const pctInReview = (stats.inReview / total) * 100;
+                  const pctPending = (stats.pending / total) * 100;
+
+                  // Stroke offset calculations
+                  const strokeApproved = pctApproved;
+                  const strokeInReview = pctInReview;
+                  const strokePending = pctPending;
+                  
+                  const offsetApproved = 100;
+                  const offsetInReview = 100 - strokeApproved;
+                  const offsetPending = 100 - strokeApproved - strokeInReview;
+
+                  return (
+                    <>
+                      {/* Approved (Green) */}
+                      {pctApproved > 0 && (
+                        <circle 
+                          cx="21" cy="21" r="15.91549430918954" fill="transparent" 
+                          stroke="#10b981" strokeWidth="4.5" 
+                          strokeDasharray={`${strokeApproved} ${100 - strokeApproved}`} 
+                          strokeDashoffset={offsetApproved} 
+                        />
+                      )}
+                      {/* In Review (Blue) */}
+                      {pctInReview > 0 && (
+                        <circle 
+                          cx="21" cy="21" r="15.91549430918954" fill="transparent" 
+                          stroke="#3b82f6" strokeWidth="4.5" 
+                          strokeDasharray={`${strokeInReview} ${100 - strokeInReview}`} 
+                          strokeDashoffset={offsetInReview} 
+                        />
+                      )}
+                      {/* Pending (Amber) */}
+                      {pctPending > 0 && (
+                        <circle 
+                          cx="21" cy="21" r="15.91549430918954" fill="transparent" 
+                          stroke="#f59e0b" strokeWidth="4.5" 
+                          strokeDasharray={`${strokePending} ${100 - strokePending}`} 
+                          strokeDashoffset={offsetPending} 
+                        />
+                      )}
+                    </>
+                  );
+                })()}
+              </svg>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0e4d41', display: 'block', lineHeight: 1 }}>{stats.total}</span>
+                <span style={{ fontSize: '0.6rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700 }}>Total</span>
+              </div>
+            </div>
+
+            {/* Legend with percentages */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '110px' }}>
+              {[
+                { label: 'Approved', count: stats.approved, color: '#10b981' },
+                { label: 'In Review', count: stats.inReview, color: '#3b82f6' },
+                { label: 'Pending', count: stats.pending, color: '#f59e0b' }
+              ].map(item => {
+                const total = stats.total || 1;
+                const percent = Math.round((item.count / total) * 100);
+                return (
+                  <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: item.color }} />
+                    <div style={{ flex: 1 }}>{item.label}</div>
+                    <div style={{ color: '#0f172a' }}>{percent}%</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Invoice Table */}
-      <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              {['Invoice #', 'Landlord', 'Billing Month', 'Total Amount', 'Submitted By', 'Submitted Date', 'Status', ''].map(h => (
-                <th key={h} style={{ padding: '0.875rem 1.25rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8', fontSize: '0.875rem' }}>No invoices found matching your criteria.</td></tr>
-            ) : filtered.map((inv, idx) => (
-              <tr key={inv.id} style={{ borderBottom: idx < filtered.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background-color 0.15s' }}
-                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f8fafc')}
-                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 600, color: '#0e4d41' }}>{inv.invoiceNumber}</td>
-                <td style={{ padding: '1rem 1.25rem', color: '#374151' }}>{inv.landlord}</td>
-                <td style={{ padding: '1rem 1.25rem', color: '#64748b' }}>{inv.billingMonth}</td>
-                <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: '#0e4d41' }}>{fmtZAR(inv.totalAmount)}</td>
-                <td style={{ padding: '1rem 1.25rem', color: '#64748b' }}>{inv.submittedBy}</td>
-                <td style={{ padding: '1rem 1.25rem', color: '#64748b' }}>{new Date(inv.submittedAt).toLocaleDateString('en-ZA')}</td>
-                <td style={{ padding: '1rem 1.25rem' }}>{statusBadge(inv.status)}</td>
-                <td style={{ padding: '1rem 1.25rem' }}>
-                  <button onClick={() => setSelectedInvoice(inv)} style={{
-                    background: '#f1f5f9', border: 'none', borderRadius: '8px',
-                    padding: '0.4rem 0.7rem', cursor: 'pointer', color: '#0e4d41',
-                    display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600
-                  }}>
-                    <Eye size={14}/> Review
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Accordion Expandable Container */}
+      <div 
+        onClick={() => setShowInvoiceList(!showInvoiceList)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '1.25rem 1.5rem', backgroundColor: 'white', borderRadius: '14px',
+          border: '1px solid #e2e8f0', cursor: 'pointer', marginBottom: '1.5rem',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'all 0.2s ease',
+          userSelect: 'none'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <FileText size={20} color="#0e4d41" />
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0e4d41', margin: 0 }}>Detailed Invoice Cases Table</h3>
+            <p style={{ margin: '0.15rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>Search, filter, paginate, and review raw compliance sheets</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{showInvoiceList ? "Hide List" : "Show List"}</span>
+          <ChevronRight size={18} style={{ transform: showInvoiceList ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+        </div>
       </div>
+
+      {/* Expandable Invoice Table Block */}
+      {showInvoiceList && (
+        <div style={{ animation: 'fadeIn 0.25s ease-out' }}>
+          {/* Filters */}
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
+              <Search size={15} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search invoices…" style={{
+                width: '100%', padding: '0.6rem 0.75rem 0.6rem 2.25rem',
+                border: '1px solid #e2e8f0', borderRadius: '10px', fontSize: '0.875rem',
+                outline: 'none', backgroundColor: 'white', boxSizing: 'border-box'
+              }} />
+            </div>
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as any)} style={{
+              padding: '0.6rem 1rem', border: '1px solid #e2e8f0', borderRadius: '10px',
+              fontSize: '0.875rem', backgroundColor: 'white', cursor: 'pointer', outline: 'none'
+            }}>
+              <option value="All">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="In Review">In Review</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+
+          {/* Invoice Table */}
+          <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  {['Invoice #', 'Landlord', 'Billing Month', 'Total Amount', 'Submitted By', 'Submitted Date', 'Status', ''].map(h => (
+                    <th key={h} style={{ padding: '0.875rem 1.25rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 700, color: '#64748b', letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.length === 0 ? (
+                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8', fontSize: '0.875rem' }}>No invoices found matching your criteria.</td></tr>
+                ) : invoices.map((inv, idx) => (
+                  <tr key={inv.id} style={{ borderBottom: idx < invoices.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background-color 0.15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}>
+                    <td style={{ padding: '1rem 1.25rem', fontWeight: 600, color: '#0e4d41' }}>{inv.invoiceNumber}</td>
+                    <td style={{ padding: '1rem 1.25rem', color: '#374151' }}>{inv.landlord}</td>
+                    <td style={{ padding: '1rem 1.25rem', color: '#64748b' }}>{inv.billingMonth}</td>
+                    <td style={{ padding: '1rem 1.25rem', fontWeight: 700, color: '#0e4d41' }}>{fmtZAR(inv.totalAmount)}</td>
+                    <td style={{ padding: '1rem 1.25rem', color: '#64748b' }}>{inv.submittedBy}</td>
+                    <td style={{ padding: '1rem 1.25rem', color: '#64748b' }}>{new Date(inv.submittedAt).toLocaleDateString('en-ZA')}</td>
+                    <td style={{ padding: '1rem 1.25rem' }}>{statusBadge(inv.status)}</td>
+                    <td style={{ padding: '1rem 1.25rem' }}>
+                      <button onClick={() => setSelectedInvoice(inv)} style={{
+                        background: '#f1f5f9', border: 'none', borderRadius: '8px',
+                        padding: '0.4rem 0.7rem', cursor: 'pointer', color: '#0e4d41',
+                        display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600
+                      }}>
+                        <Eye size={14}/> Review
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '1rem 1.25rem', backgroundColor: 'white', borderTop: '1px solid #e2e8f0',
+                fontSize: '0.8125rem', color: '#64748b'
+              }}>
+                <div>
+                  Showing <strong style={{ color: '#0f172a' }}>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredCount)}</strong> to{' '}
+                  <strong style={{ color: '#0f172a' }}>{Math.min(currentPage * itemsPerPage, filteredCount)}</strong> of{' '}
+                  <strong style={{ color: '#0f172a' }}>{filteredCount}</strong> cases
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    style={{
+                      padding: '0.35rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px',
+                      backgroundColor: 'white', color: currentPage === 1 ? '#cbd5e1' : '#475569',
+                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 600,
+                      fontSize: '0.75rem', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: totalPages }).map((_, i) => {
+                    const pageNum = i + 1;
+                    const isActive = currentPage === pageNum;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        style={{
+                          width: '28px', height: '28px', border: isActive ? 'none' : '1px solid #cbd5e1',
+                          borderRadius: '6px', backgroundColor: isActive ? '#0e4d41' : 'white',
+                          color: isActive ? 'white' : '#475569', cursor: 'pointer', fontWeight: 600,
+                          fontSize: '0.75rem', transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    style={{
+                      padding: '0.35rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px',
+                      backgroundColor: 'white', color: currentPage === totalPages ? '#cbd5e1' : '#475569',
+                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontWeight: 600,
+                      fontSize: '0.75rem', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

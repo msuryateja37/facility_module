@@ -47,6 +47,7 @@ const reviewRoutes_1 = __importDefault(require("./routes/reviewRoutes"));
 const archiveRoutes_1 = __importDefault(require("./routes/archiveRoutes"));
 const logRoutes_1 = __importDefault(require("./routes/logRoutes"));
 const aiRoutes_1 = __importDefault(require("./routes/aiRoutes"));
+const vaultRoutes_1 = __importDefault(require("./routes/vaultRoutes"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 5500;
 // Ensure uploads folder exists in base server directory
@@ -67,6 +68,7 @@ app.use('/api', reviewRoutes_1.default);
 app.use('/api', archiveRoutes_1.default);
 app.use('/api', logRoutes_1.default);
 app.use('/api', aiRoutes_1.default);
+app.use('/api', vaultRoutes_1.default);
 // Serve health status
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: "healthy", timestamp: new Date() });

@@ -33,23 +33,12 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Review = void 0;
-const db = __importStar(require("../data/dbConnector"));
-class Review {
-    static async getAll() {
-        return db.getReviews();
-    }
-    static async getPaginated(page, limit, search, status) {
-        return db.getPaginatedReviews(page, limit, search, status);
-    }
-    static async getById(id) {
-        return db.getReviewById(id);
-    }
-    static async create(reviewData) {
-        return db.createReview(reviewData);
-    }
-    static async update(id, updates) {
-        return db.updateReview(id, updates);
-    }
-}
-exports.Review = Review;
+const express_1 = require("express");
+const vaultController = __importStar(require("../controllers/vaultController"));
+const router = (0, express_1.Router)();
+router.get('/vault/folders', vaultController.getFolders);
+router.post('/vault/folders', vaultController.createFolder);
+router.get('/vault/folders/:province/:incidentNumber/files', vaultController.getFiles);
+router.post('/vault/folders/:province/:incidentNumber/files', vaultController.uploadFile);
+router.delete('/vault/folders/:province/:incidentNumber/files/:fileName', vaultController.deleteFile);
+exports.default = router;

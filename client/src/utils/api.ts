@@ -32,8 +32,20 @@ export async function fetchStats() {
   return res.json();
 }
 
-export async function fetchReviews() {
-  const res = await fetch(`${API_BASE}/reviews`, {
+export async function fetchReviews(page?: number, limit?: number, search?: string, status?: string) {
+  let url = `${API_BASE}/reviews`;
+  const params = new URLSearchParams();
+  if (page) params.append('page', String(page));
+  if (limit) params.append('limit', String(limit));
+  if (search) params.append('search', search);
+  if (status) params.append('status', status);
+
+  const queryStr = params.toString();
+  if (queryStr) {
+    url += `?${queryStr}`;
+  }
+
+  const res = await fetch(url, {
     headers: getHeaders()
   });
   if (!res.ok) throw new Error("Failed to fetch reviews");
@@ -139,5 +151,53 @@ export async function uploadInvoiceAndExtract(fileName: string, fileType: string
     body: JSON.stringify({ fileName, fileType, fileBase64 })
   });
   if (!res.ok) throw new Error("Failed to process invoice with Azure Generative AI");
+  return res.json();
+}
+
+export async function fetchVaultFolders() {
+  const res = await fetch(`${API_BASE}/vault/folders`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error("Failed to fetch vault folders");
+  return res.json();
+}
+
+export async function createVaultFolder(folderData: { incidentNumber: string, province: string, description: string }) {
+  const res = await fetch(`${API_BASE}/vault/folders`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(folderData)
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || "Failed to create vault folder");
+  }
+  return res.json();
+}
+
+export async function fetchVaultFiles(province: string, incidentNumber: string) {
+  const res = await fetch(`${API_BASE}/vault/folders/${encodeURIComponent(province)}/${encodeURIComponent(incidentNumber)}/files`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error("Failed to fetch vault files");
+  return res.json();
+}
+
+export async function uploadVaultFile(province: string, incidentNumber: string, fileData: { fileName: string, fileType: string, fileBase64: string }) {
+  const res = await fetch(`${API_BASE}/vault/folders/${encodeURIComponent(province)}/${encodeURIComponent(incidentNumber)}/files`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(fileData)
+  });
+  if (!res.ok) throw new Error("Failed to upload vault file");
+  return res.json();
+}
+
+export async function deleteVaultFile(province: string, incidentNumber: string, fileName: string) {
+  const res = await fetch(`${API_BASE}/vault/folders/${encodeURIComponent(province)}/${encodeURIComponent(incidentNumber)}/files/${encodeURIComponent(fileName)}`, {
+    method: "DELETE",
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error("Failed to delete vault file");
   return res.json();
 }

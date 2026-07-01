@@ -73,6 +73,16 @@ export interface UserAccount {
   officeLocation: string;
   designation: string;
   assignedRole: string;
+  province?: string;
+}
+
+export interface VaultFolder {
+  id: string;
+  incidentNumber: string;
+  province: string;
+  description: string;
+  createdAt: string;
+  createdBy: string;
 }
 
 interface DatabaseSchema {
@@ -80,6 +90,7 @@ interface DatabaseSchema {
   archiveLogs: ArchiveLog[];
   systemLogs: SystemLog[];
   users: UserAccount[];
+  vaultFolders?: VaultFolder[];
 }
 
 const DEFAULT_DB: DatabaseSchema = {
@@ -268,8 +279,13 @@ const DEFAULT_DB: DatabaseSchema = {
     }
   ],
   users: [
-    { username: "admin", password: "admin", firstName: "Sipho", lastName: "Khumalo", email: "sipho.khumalo@dlrrd.gov.za", phoneNumber: "+27 82 111 2222", officeLocation: "DLRRD Pretoria Head Office, 184 Jeff Masemola Street", designation: "Facilities Administrator", assignedRole: "admin" },
-    { username: "supervisor", password: "super123", firstName: "Thabo", lastName: "Mokoena", email: "thabo.mokoena@dlrrd.gov.za", phoneNumber: "+27 84 333 4444", officeLocation: "Compliance Operations Centre, Pretoria Main Building", designation: "Facilities Supervisor", assignedRole: "supervisor" }
+    { username: "admin", password: "admin", firstName: "Sipho", lastName: "Khumalo", email: "sipho.khumalo@dlrrd.gov.za", phoneNumber: "+27 82 111 2222", officeLocation: "DLRRD Pretoria Head Office, 184 Jeff Masemola Street", designation: "Facilities Administrator", assignedRole: "admin", province: "Gauteng" },
+    { username: "supervisor", password: "super123", firstName: "Thabo", lastName: "Mokoena", email: "thabo.mokoena@dlrrd.gov.za", phoneNumber: "+27 84 333 4444", officeLocation: "Compliance Operations Centre, Pretoria Main Building", designation: "Facilities Supervisor", assignedRole: "supervisor", province: "Gauteng" }
+  ],
+  vaultFolders: [
+    { id: "FLD-1001", incidentNumber: "INC-2026-0001", province: "Gauteng", description: "Water pipe leakage at regional facility", createdAt: "2026-06-28T10:00:00Z", createdBy: "supervisor" },
+    { id: "FLD-1002", incidentNumber: "INC-2026-0002", province: "Gauteng", description: "Electrical power failure in main chamber", createdAt: "2026-06-29T11:30:00Z", createdBy: "supervisor" },
+    { id: "FLD-1003", incidentNumber: "INC-2026-0003", province: "Western Cape", description: "HVAC maintenance requirements", createdAt: "2026-06-30T09:00:00Z", createdBy: "admin" }
   ]
 };
 
@@ -287,6 +303,10 @@ class MockDb {
         this.data = JSON.parse(fileContent);
         if (!this.data.users || this.data.users.length !== 2 || !this.data.users[0].officeLocation) {
           this.data.users = DEFAULT_DB.users;
+          this.save();
+        }
+        if (!this.data.vaultFolders) {
+          this.data.vaultFolders = DEFAULT_DB.vaultFolders;
           this.save();
         }
       } else {
@@ -308,7 +328,7 @@ class MockDb {
 
   // Reviews
   getReviews() {
-    return this.data.reviews;
+    return [...this.data.reviews].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   getReviewById(id: string) {
@@ -317,7 +337,7 @@ class MockDb {
 
   createReview(review: Omit<Review, 'id' | 'createdAt' | 'updatedAt' | 'daysRemaining'>) {
     const randomSuffix = Math.floor(100000 + Math.random() * 900000);
-    const id = `INV-2025-${randomSuffix}`;
+    const id = (review as any).id || `INV-2025-${randomSuffix}`;
     const newReview: Review = {
       ...review,
       id,
@@ -403,6 +423,54 @@ class MockDb {
       return this.data.users[idx];
     }
     return null;
+  }
+
+  getVaultFolders() {
+    if (!this.data.vaultFolders) {
+      this.data.vaultFolders = DEFAULT_DB.vaultFolders || [];
+    }
+    return [...this.data.vaultFolders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  createVaultFolder(folder: Omit<VaultFolder, 'id' | 'createdAt'>) {
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+    const id = `FLD-${randomSuffix}`;
+    const newFolder: VaultFolder = {
+      ...folder,
+      id,
+      createdAt: new Date().toISOString()
+    };
+    if (!this.data.vaultFolders) {
+      this.data.vaultFolders = [];
+    }
+    this.data.vaultFolders.push(newFolder);
+    this.save();
+    return newFolder;
+  }
+
+  getPaginatedReviews(page: number, limit: number, search: string, status: string) {
+    const reviews = this.getReviews();
+    const filtered = reviews.filter(r => {
+      const matchStatus = !status || status === 'All' || r.status === status;
+      const matchSearch = !search || 
+        r.id.toLowerCase().includes(search.toLowerCase()) ||
+        r.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
+        r.serviceProvider.toLowerCase().includes(search.toLowerCase()) ||
+        r.billingPeriod.toLowerCase().includes(search.toLowerCase()) ||
+        r.propertyBuilding.toLowerCase().includes(search.toLowerCase());
+      return matchStatus && matchSearch;
+    });
+
+    const offset = (page - 1) * limit;
+    const paginated = filtered.slice(offset, offset + limit);
+    const totalPages = Math.ceil(filtered.length / limit);
+
+    return {
+      reviews: paginated,
+      total: filtered.length,
+      page,
+      totalPages
+    };
   }
 }
 

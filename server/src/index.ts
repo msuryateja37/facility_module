@@ -10,6 +10,7 @@ import reviewRoutes from './routes/reviewRoutes';
 import archiveRoutes from './routes/archiveRoutes';
 import logRoutes from './routes/logRoutes';
 import aiRoutes from './routes/aiRoutes';
+import vaultRoutes from './routes/vaultRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 5500;
@@ -35,6 +36,7 @@ app.use('/api', reviewRoutes);
 app.use('/api', archiveRoutes);
 app.use('/api', logRoutes);
 app.use('/api', aiRoutes);
+app.use('/api', vaultRoutes);
 
 // Serve health status
 app.get('/api/health', (req: Request, res: Response) => {

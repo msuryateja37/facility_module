@@ -10,12 +10,14 @@ import {
   FileText,
   Bell,
   Settings,
+  Folder,
 } from 'lucide-react';
 
 // Pages
 import Supervisor from './roles/Supervisor';
 import Admin      from './roles/Admin';
 import Profile    from './shared/Profile';
+import Vault      from './shared/Vault';
 
 interface DashboardProps {
   user: any;
@@ -53,6 +55,7 @@ export default function Dashboard({ user, onLogout, onProfileUpdate }: Dashboard
   const getSidebarLinks = () => {
     const links = [
       { id: 'dashboard', label: 'Invoice Management', icon: <FileText size={18} /> },
+      { id: 'vault',     label: 'Vault',              icon: <Folder size={18} /> },
       { id: 'profile',   label: 'My Profile',         icon: <User size={18} /> },
     ];
     return links;
@@ -65,6 +68,9 @@ export default function Dashboard({ user, onLogout, onProfileUpdate }: Dashboard
   const renderContent = () => {
     if (activeView === 'profile') {
       return <Profile user={user} activeRole={activeRole} onProfileUpdate={onProfileUpdate} />;
+    }
+    if (activeView === 'vault') {
+      return <Vault user={user} />;
     }
     if (activeRole === 'admin') {
       return <Admin user={user} />;

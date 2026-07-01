@@ -343,19 +343,29 @@ interface Props {
 }
 
 export default function Supervisor({ user }: Props) {
-  const { data: reviewsData, refetch: refetchReviews } = useQuery<any[]>({
-    queryKey: ['reviews'],
-    queryFn: fetchReviews
-  });
-
-  const invoices: Invoice[] = React.useMemo(() => {
-    if (!reviewsData) return [];
-    return reviewsData.map(r => mapReviewToInvoice(r, r.documents?.[0]?.name || 'Invoice'));
-  }, [reviewsData]);
-
   // List view state
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'All' | InvoiceStatus>('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Paginated query for table
+  const { data: reviewsPayload, refetch: refetchReviews } = useQuery<any>({
+    queryKey: ['reviews', currentPage, search, filterStatus],
+    queryFn: () => fetchReviews(currentPage, itemsPerPage, search, filterStatus)
+  });
+
+  // Global query for stats calculation
+  const { data: allReviewsData, refetch: refetchAll } = useQuery<any[]>({
+    queryKey: ['allReviews'],
+    queryFn: () => fetchReviews()
+  });
+
+  const invoices: Invoice[] = React.useMemo(() => {
+    if (!reviewsPayload) return [];
+    const reviewsList = Array.isArray(reviewsPayload) ? reviewsPayload : (reviewsPayload.reviews || []);
+    return reviewsList.map((r: any) => mapReviewToInvoice(r, r.documents?.[0]?.name || 'Invoice'));
+  }, [reviewsPayload]);
 
   // Wizard state
   const [wizardMode, setWizardMode]       = useState<'list' | 'new' | 'view'>('list');
@@ -367,21 +377,25 @@ export default function Supervisor({ user }: Props) {
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [submitted, setSubmitted]         = useState(false);
 
-  // Derived stats
-  const stats = {
-    total:     invoices.length,
-    pending:   invoices.filter(i => i.status === 'Pending').length,
-    inReview:  invoices.filter(i => i.status === 'In Review').length,
-    approved:  invoices.filter(i => i.status === 'Approved').length,
-  };
+  // Derived stats calculated globally
+  const stats = React.useMemo(() => {
+    if (!allReviewsData) return { total: 0, pending: 0, inReview: 0, approved: 0 };
+    const mapped = allReviewsData.map((r: any) => mapReviewToInvoice(r, r.documents?.[0]?.name || 'Invoice'));
+    return {
+      total:     mapped.length,
+      pending:   mapped.filter(i => i.status === 'Pending').length,
+      inReview:  mapped.filter(i => i.status === 'In Review').length,
+      approved:  mapped.filter(i => i.status === 'Approved').length,
+    };
+  }, [allReviewsData]);
 
-  const filtered = invoices.filter(inv => {
-    const matchSearch = inv.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-                        inv.landlord.toLowerCase().includes(search.toLowerCase()) ||
-                        inv.billingMonth.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === 'All' || inv.status === filterStatus;
-    return matchSearch && matchStatus;
-  });
+  // Reset pagination on filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterStatus]);
+
+  const totalPages = reviewsPayload && !Array.isArray(reviewsPayload) ? (reviewsPayload.totalPages || 1) : 1;
+  const filteredCount = reviewsPayload && !Array.isArray(reviewsPayload) ? (reviewsPayload.total || 0) : invoices.length;
 
   // ── Wizard handlers ──────────────────────────────────────────
 
@@ -458,6 +472,7 @@ export default function Supervisor({ user }: Props) {
       };
       await updateReview(invoice.id, reviewUpdates);
       await refetchReviews();
+      await refetchAll();
       setSubmitted(true);
       setTimeout(() => {
         setWizardMode('list');
@@ -566,10 +581,10 @@ export default function Supervisor({ user }: Props) {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {invoices.length === 0 ? (
               <tr><td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8', fontSize: '0.875rem' }}>No invoices found. Click "New Invoice" to create one.</td></tr>
-            ) : filtered.map((inv, idx) => (
-              <tr key={inv.id} style={{ borderBottom: idx < filtered.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background-color 0.15s' }}
+            ) : invoices.map((inv, idx) => (
+              <tr key={inv.id} style={{ borderBottom: idx < invoices.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background-color 0.15s' }}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#f8fafc')}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}>
                 <td style={{ padding: '1rem 1.25rem', fontWeight: 600, color: '#0e4d41' }}>{inv.invoiceNumber}</td>
@@ -591,6 +606,65 @@ export default function Supervisor({ user }: Props) {
             ))}
           </tbody>
         </table>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '1rem 1.25rem', backgroundColor: 'white', borderTop: '1px solid #e2e8f0',
+            fontSize: '0.8125rem', color: '#64748b'
+          }}>
+            <div>
+              Showing <strong style={{ color: '#0f172a' }}>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredCount)}</strong> to{' '}
+              <strong style={{ color: '#0f172a' }}>{Math.min(currentPage * itemsPerPage, filteredCount)}</strong> of{' '}
+              <strong style={{ color: '#0f172a' }}>{filteredCount}</strong> cases
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '0.35rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px',
+                  backgroundColor: 'white', color: currentPage === 1 ? '#cbd5e1' : '#475569',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 600,
+                  fontSize: '0.75rem', transition: 'all 0.15s ease'
+                }}
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }).map((_, i) => {
+                const pageNum = i + 1;
+                const isActive = currentPage === pageNum;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    style={{
+                      width: '28px', height: '28px', border: isActive ? 'none' : '1px solid #cbd5e1',
+                      borderRadius: '6px', backgroundColor: isActive ? '#0e4d41' : 'white',
+                      color: isActive ? 'white' : '#475569', cursor: 'pointer', fontWeight: 600,
+                      fontSize: '0.75rem', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '0.35rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px',
+                  backgroundColor: 'white', color: currentPage === totalPages ? '#cbd5e1' : '#475569',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontWeight: 600,
+                  fontSize: '0.75rem', transition: 'all 0.15s ease'
+                }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

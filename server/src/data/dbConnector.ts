@@ -118,7 +118,30 @@ async function createTablesIfNotExist() {
         phoneNumber VARCHAR(50) NOT NULL,
         officeLocation VARCHAR(255) NOT NULL,
         designation VARCHAR(255) NOT NULL,
-        assignedRole VARCHAR(100) NOT NULL
+        assignedRole VARCHAR(100) NOT NULL,
+        province VARCHAR(100) NULL
+      )
+    `);
+
+    // Alter Users table to add province if missing (for existing tables)
+    await pool.request().query(`
+      IF EXISTS (SELECT * FROM sysobjects WHERE name='Users' AND xtype='U')
+      BEGIN
+        IF COL_LENGTH('Users', 'province') IS NULL
+          ALTER TABLE Users ADD province VARCHAR(100) NULL
+      END
+    `);
+
+    // Table VaultFolders
+    await pool.request().query(`
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='VaultFolders' AND xtype='U')
+      CREATE TABLE VaultFolders (
+        id VARCHAR(50) PRIMARY KEY,
+        incidentNumber VARCHAR(100) NOT NULL UNIQUE,
+        province VARCHAR(100) NOT NULL,
+        description NVARCHAR(500),
+        createdAt VARCHAR(50) NOT NULL,
+        createdBy VARCHAR(100) NOT NULL
       )
     `);
 
@@ -128,8 +151,8 @@ async function createTablesIfNotExist() {
       console.log("Consolidating system roles to Supervisor and Admin in Azure SQL...");
       await pool.request().query("DELETE FROM Users"); // Clear old records
       const defaultUsers = [
-        { username: "admin", password: "admin", firstName: "Sipho", lastName: "Khumalo", email: "sipho.khumalo@dlrrd.gov.za", phoneNumber: "+27 82 111 2222", officeLocation: "DLRRD Pretoria Head Office, 184 Jeff Masemola Street", designation: "Facilities Administrator", assignedRole: "admin" },
-        { username: "supervisor", password: "super123", firstName: "Thabo", lastName: "Mokoena", email: "thabo.mokoena@dlrrd.gov.za", phoneNumber: "+27 84 333 4444", officeLocation: "Compliance Operations Centre, Pretoria Main Building", designation: "Facilities Supervisor", assignedRole: "supervisor" }
+        { username: "admin", password: "admin", firstName: "Sipho", lastName: "Khumalo", email: "sipho.khumalo@dlrrd.gov.za", phoneNumber: "+27 82 111 2222", officeLocation: "DLRRD Pretoria Head Office, 184 Jeff Masemola Street", designation: "Facilities Administrator", assignedRole: "admin", province: "Gauteng" },
+        { username: "supervisor", password: "super123", firstName: "Thabo", lastName: "Mokoena", email: "thabo.mokoena@dlrrd.gov.za", phoneNumber: "+27 84 333 4444", officeLocation: "Compliance Operations Centre, Pretoria Main Building", designation: "Facilities Supervisor", assignedRole: "supervisor", province: "Gauteng" }
       ];
       for (const u of defaultUsers) {
         await pool.request()
@@ -142,11 +165,17 @@ async function createTablesIfNotExist() {
           .input('officeLocation', mssql.VarChar, u.officeLocation)
           .input('designation', mssql.VarChar, u.designation)
           .input('assignedRole', mssql.VarChar, u.assignedRole)
+          .input('province', mssql.VarChar, u.province)
           .query(`
-            INSERT INTO Users (username, password, firstName, lastName, email, phoneNumber, officeLocation, designation, assignedRole)
-            VALUES (@username, @password, @firstName, @lastName, @email, @phoneNumber, @officeLocation, @designation, @assignedRole)
+            INSERT INTO Users (username, password, firstName, lastName, email, phoneNumber, officeLocation, designation, assignedRole, province)
+            VALUES (@username, @password, @firstName, @lastName, @email, @phoneNumber, @officeLocation, @designation, @assignedRole, @province)
           `);
       }
+    } else {
+      // Ensure province is populated for existing seeded users
+      await pool.request().query(`
+        UPDATE Users SET province = 'Gauteng' WHERE province IS NULL
+      `);
     }
 
     // Seed default reviews if table is empty
@@ -479,6 +508,10 @@ export async function updateUser(username: string, updates: any): Promise<any> {
         req.input('officeLocation', mssql.VarChar, updates.officeLocation);
         setClauses.push('officeLocation = @officeLocation');
       }
+      if (updates.province !== undefined) {
+        req.input('province', mssql.VarChar, updates.province);
+        setClauses.push('province = @province');
+      }
       
       if (setClauses.length > 0) {
         await req.query(`UPDATE Users SET ${setClauses.join(', ')} WHERE username = @username`);
@@ -493,4 +526,122 @@ export async function updateUser(username: string, updates: any): Promise<any> {
     }
   }
   return mockDb.updateUser(username, updates);
+}
+
+export async function getVaultFolders(): Promise<any[]> {
+  if (isSqlConnected && pool) {
+    try {
+      const res = await pool.request().query("SELECT * FROM VaultFolders ORDER BY createdAt DESC");
+      return res.recordset;
+    } catch (err) {
+      console.error("SQL query vault folders error, using local fallback", err);
+    }
+  }
+  return mockDb.getVaultFolders();
+}
+
+export async function createVaultFolder(folder: any): Promise<any> {
+  const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+  const id = folder.id || `FLD-${randomSuffix}`;
+  const now = new Date().toISOString();
+  const newFolder = {
+    id,
+    ...folder,
+    createdAt: now
+  };
+  if (isSqlConnected && pool) {
+    try {
+      await pool.request()
+        .input('id', mssql.VarChar, id)
+        .input('incidentNumber', mssql.VarChar, folder.incidentNumber)
+        .input('province', mssql.VarChar, folder.province)
+        .input('description', mssql.NVarChar, folder.description || '')
+        .input('createdAt', mssql.VarChar, now)
+        .input('createdBy', mssql.VarChar, folder.createdBy)
+        .query(`
+          INSERT INTO VaultFolders (id, incidentNumber, province, description, createdAt, createdBy)
+          VALUES (@id, @incidentNumber, @province, @description, @createdAt, @createdBy)
+        `);
+      return newFolder;
+    } catch (err) {
+      console.error("SQL create vault folder error, using local fallback", err);
+    }
+  }
+  return mockDb.createVaultFolder(folder);
+}
+
+export async function getVaultFolderByIncident(incidentNumber: string): Promise<any> {
+  if (isSqlConnected && pool) {
+    try {
+      const res = await pool.request()
+        .input('incidentNumber', mssql.VarChar, incidentNumber)
+        .query("SELECT TOP 1 * FROM VaultFolders WHERE incidentNumber = @incidentNumber");
+      if (res.recordset.length > 0) {
+        return res.recordset[0];
+      }
+      return null;
+    } catch (err) {
+      console.error("SQL query vault folder by incident error, using local fallback", err);
+    }
+  }
+  return mockDb.getVaultFolders().find((f: any) => f.incidentNumber === incidentNumber) || null;
+}
+
+export async function getPaginatedReviews(
+  page: number, 
+  limit: number, 
+  search: string, 
+  status: string
+): Promise<{ reviews: any[], total: number, page: number, totalPages: number }> {
+  if (isSqlConnected && pool) {
+    try {
+      const offset = (page - 1) * limit;
+      let whereClause = "WHERE 1=1";
+      const request = pool.request();
+
+      if (status && status !== 'All') {
+        request.input('status', mssql.VarChar, status);
+        whereClause += " AND status = @status";
+      }
+
+      if (search) {
+        request.input('search', mssql.VarChar, `%${search}%`);
+        whereClause += " AND (id LIKE @search OR invoiceNumber LIKE @search OR serviceProvider LIKE @search OR billingPeriod LIKE @search OR propertyBuilding LIKE @search)";
+      }
+
+      // Count Query
+      const countRes = await request.query(`SELECT COUNT(*) as count FROM Reviews ${whereClause}`);
+      const total = countRes.recordset[0].count;
+
+      // Select Query with Pagination
+      request.input('offset', mssql.Int, offset);
+      request.input('limit', mssql.Int, limit);
+      
+      const selectRes = await request.query(`
+        SELECT * FROM Reviews 
+        ${whereClause} 
+        ORDER BY createdAt DESC 
+        OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
+      `);
+
+      const reviews = selectRes.recordset.map(row => ({
+        ...row,
+        documents: JSON.parse(row.documents || '[]'),
+        calculations: JSON.parse(row.calculations || '[]'),
+        paymentForm: JSON.parse(row.paymentForm || 'null')
+      }));
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        reviews,
+        total,
+        page,
+        totalPages
+      };
+    } catch (err) {
+      console.error("SQL query getPaginatedReviews error, using local fallback", err);
+    }
+  }
+  return mockDb.getPaginatedReviews(page, limit, search, status);
 }

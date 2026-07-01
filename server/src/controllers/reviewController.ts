@@ -3,7 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { Review } from '../models/Review';
 import { extractInvoiceData } from '../services/azureAiService';
-import { uploadBlob } from '../services/azureBlobService';
+import { uploadBlob, uploadVaultFile } from '../services/azureBlobService';
+import * as db from '../data/dbConnector';
 
 export const getStats = async (req: Request, res: Response) => {
   try {
@@ -36,9 +37,21 @@ export const getStats = async (req: Request, res: Response) => {
 
 export const getReviews = async (req: Request, res: Response) => {
   try {
+    const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+    const search = req.query.search as string || '';
+    const status = req.query.status as string || '';
+
+    // If page is specified, run paginated query
+    if (page !== undefined && limit !== undefined) {
+      const payload = await Review.getPaginated(page, limit, search, status);
+      return res.status(200).json(payload);
+    }
+
     const reviews = await Review.getAll();
     return res.status(200).json(reviews);
   } catch (err) {
+    console.error("Error in getReviews controller:", err);
     return res.status(500).json({ message: "Error loading reviews" });
   }
 };
@@ -148,32 +161,73 @@ export const uploadInvoice = async (req: Request, res: Response) => {
   }
 
   try {
-    // Ensure uploads folder exists
+    // Resolve supervisor province vault scope
+    const authHeader = req.headers.authorization;
+    let username = 'supervisor';
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      if (token.startsWith('mock-jwt-token-')) {
+        username = token.substring('mock-jwt-token-'.length);
+      }
+    }
+    const user = await db.getUserByUsername(username);
+    const province = user?.province || 'Gauteng';
+
+    // Run AI extraction early to verify province alignment and invoice validity
+    const extracted = await extractInvoiceData(fileName, fileType, fileBase64);
+
+    const isValid = extracted.isValidInvoice !== false && String(extracted.isValidInvoice).toLowerCase() !== 'false';
+    if (!isValid) {
+      return res.status(400).json({
+        message: extracted.validationError || "Please upload a correct invoice. The system detected that the uploaded document is not a valid invoice."
+      });
+    }
+
+    const isSupervisor = user?.assignedRole === 'supervisor';
+    const invoiceProvince = extracted.province || 'Gauteng';
+
+    if (isSupervisor && invoiceProvince.toLowerCase() !== province.toLowerCase()) {
+      return res.status(400).json({
+        message: `AI verification failed: You are assigned to ${province} province, but this invoice belongs to ${invoiceProvince}.`
+      });
+    }
+
+    // Generate Tracking number: INV-(first 4 letters of province)-(random number)
+    const cleanProvince = province.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase();
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    const trackingNumber = `INV-${cleanProvince}-${randomNum}`;
+
+    // Decode base64 file data
+    const base64Data = fileBase64.includes('base64,') 
+      ? fileBase64.split('base64,')[1] 
+      : fileBase64;
+    const fileBuffer = Buffer.from(base64Data, 'base64');
+    
+    // Save locally first for tracking if needed
     const uploadsDir = process.env.HOME
       ? path.join(process.env.HOME, 'uploads')
       : path.join(__dirname, '../../uploads');
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
-
-    // Clean base64 data and save to file
-    const base64Data = fileBase64.includes('base64,') 
-      ? fileBase64.split('base64,')[1] 
-      : fileBase64;
-    
     const uniqueFileName = `${Date.now()}_${fileName.replace(/\s+/g, '_')}`;
     const filePath = path.join(uploadsDir, uniqueFileName);
-    const fileBuffer = Buffer.from(base64Data, 'base64');
-    
     fs.writeFileSync(filePath, fileBuffer);
-    console.log(`Saved uploaded invoice file to: ${filePath}`);
 
-    // Upload to Azure Blob Storage
-    const documentUrl = await uploadBlob(uniqueFileName, fileBuffer, fileType);
+    // Upload directly and exclusively to Vault on Azure Blob Storage
+    const documentUrl = await uploadVaultFile(province, trackingNumber, fileName, fileBuffer, fileType);
 
-    const extracted = await extractInvoiceData(fileName, fileType, fileBase64);
+    // Create a matching Vault Folder in database
+    await db.createVaultFolder({
+      incidentNumber: trackingNumber,
+      province: province,
+      description: `Auto-generated vault folder for incident ${trackingNumber}`,
+      createdBy: username
+    });
     
+    // Create the Review case in DB using the generated tracking ID
     const newReview = await Review.create({
+      id: trackingNumber,
       serviceProvider: extracted.serviceProvider,
       propertyBuilding: extracted.propertyBuilding,
       billingPeriod: extracted.billingPeriod,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, Award, Landmark, Check, Phone, AlertCircle } from 'lucide-react';
+import { User, Mail, Award, Landmark, Check, Phone, AlertCircle, MapPin } from 'lucide-react';
 import { updateProfile } from '../../utils/api';
 
 interface ProfileProps {
@@ -103,6 +103,14 @@ export default function Profile({ user, activeRole, onProfileUpdate }: ProfilePr
                 <div className="badge badge-verified" style={{ marginTop: '0.25rem' }}>
                   {getRoleLabel(activeRole)}
                 </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+              <MapPin size={18} style={{ color: 'var(--color-primary)' }} />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Province Vault</div>
+                <div>{user.province || 'Gauteng'}</div>
               </div>
             </div>
 
@@ -221,6 +229,17 @@ export default function Profile({ user, activeRole, onProfileUpdate }: ProfilePr
                 value={office}
                 onChange={(e) => setOffice(e.target.value)}
                 required
+              />
+            </div>
+
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label htmlFor="province">Assigned Province Vault</label>
+              <input
+                id="province"
+                type="text"
+                value={user.province || 'Gauteng'}
+                disabled
+                style={{ backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' }}
               />
             </div>
 
